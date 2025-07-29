@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - Student Attendance System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>AttendanceTracker</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="attendance.html" class="nav-link"><i class="fas fa-clipboard-check"></i> Attendance</a></li>
+                    <li><a href="records.html" class="nav-link"><i class="fas fa-file-alt"></i> Records</a></li>
+                    <li><a href="students.html" class="nav-link"><i class="fas fa-users"></i> Students</a></li>
+                    <li><a href="schedule.html" class="nav-link active"><i class="fas fa-calendar"></i> Schedule</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Schedule</h1>
+                <p>View and manage academic schedules</p>
+                <button class="btn btn-primary" id="addSessionBtn">
+                    <i class="fas fa-plus"></i> Add Session
+                </button>
+            </div>
+
+            <!-- Date Navigation -->
+            <div class="date-navigation">
+                <button id="prevDayBtn" class="btn btn-secondary">
+                    <i class="fas fa-chevron-left"></i> Previous Day
+                </button>
+                <div class="current-date">
+                    <h2 id="currentDateDisplay"></h2>
+                </div>
+                <button id="nextDayBtn" class="btn btn-secondary">
+                    Next Day <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- Today's Schedule -->
+            <div class="schedule-section">
+                <h3>Today's Schedule</h3>
+                <div id="todaySchedule" class="schedule-list">
+                    <!-- Schedule items will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Weekly Overview -->
+            <div class="weekly-overview">
+                <h3>Weekly Overview</h3>
+                <div class="week-grid" id="weekGrid">
+                    <!-- Week grid will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <h3 id="sessionsToday">0</h3>
+                    <p>Sessions Today</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="classesToday">0</h3>
+                    <p>Classes</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="eventsToday">0</h3>
+                    <p>Events</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="activitiesCount">0</h3>
+                    <p>Activities</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
