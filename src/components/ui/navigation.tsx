@@ -6,7 +6,8 @@ import {
   Users, 
   FileText, 
   Calendar,
-  GraduationCap 
+  GraduationCap,
+  UserCog
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -19,6 +20,7 @@ const Navigation = () => {
     { icon: FileText, label: "Records", href: "/records" },
     { icon: Users, label: "Students", href: "/students" },
     { icon: Calendar, label: "Schedule", href: "/schedule" },
+    { icon: UserCog, label: "Accounts", href: "/accounts" },
   ];
 
   return (
