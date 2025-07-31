@@ -9,6 +9,7 @@ import Records from "./pages/Records";
 import Students from "./pages/Students";
 import Schedule from "./pages/Schedule";
 import Accounts from "./pages/Accounts";
+import ExcuseApplications from "./pages/ExcuseApplications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/attendance" element={<Attendance />} />
           <Route path="/records" element={<Records />} />
+          <Route path="/excuse-applications" element={<ExcuseApplications />} />
           <Route path="/students" element={<Students />} />
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/accounts" element={<Accounts />} />
