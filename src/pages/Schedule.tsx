@@ -11,12 +11,16 @@ import {
   ChevronLeft,
   ChevronRight,
   BookOpen,
-  Star
+  Star,
+  Eye
 } from "lucide-react";
 import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Schedule = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedSession, setSelectedSession] = useState<any>(null);
+  const [isStudentDialogOpen, setIsStudentDialogOpen] = useState(false);
 
   const mockSchedule = [
     {
@@ -27,7 +31,14 @@ const Schedule = () => {
       location: "Room 201",
       instructor: "Dr. Smith",
       students: 45,
-      department: "Computer Science"
+      department: "Computer Science",
+      studentList: [
+        { id: 1, name: "John Doe", studentId: "2024001" },
+        { id: 2, name: "Jane Smith", studentId: "2024002" },
+        { id: 3, name: "Mike Johnson", studentId: "2024003" },
+        { id: 4, name: "Sarah Williams", studentId: "2024004" },
+        { id: 5, name: "David Brown", studentId: "2024005" }
+      ]
     },
     {
       id: 2,
@@ -37,7 +48,12 @@ const Schedule = () => {
       location: "Lab 3",
       instructor: "Prof. Johnson",
       students: 32,
-      department: "Science"
+      department: "Science",
+      studentList: [
+        { id: 6, name: "Emma Davis", studentId: "2024006" },
+        { id: 7, name: "Alex Wilson", studentId: "2024007" },
+        { id: 8, name: "Lisa Chen", studentId: "2024008" }
+      ]
     },
     {
       id: 3,
@@ -47,7 +63,10 @@ const Schedule = () => {
       location: "Main Auditorium", 
       instructor: "Principal",
       students: 300,
-      department: "Administration"
+      department: "Administration",
+      studentList: [
+        { id: 9, name: "All Students", studentId: "ALL" }
+      ]
     },
     {
       id: 4,
@@ -57,7 +76,11 @@ const Schedule = () => {
       location: "Room 105",
       instructor: "Ms. Davis",
       students: 20,
-      department: "Mathematics"
+      department: "Mathematics",
+      studentList: [
+        { id: 10, name: "Robert Taylor", studentId: "2024010" },
+        { id: 11, name: "Grace Lee", studentId: "2024011" }
+      ]
     }
   ];
 
@@ -96,6 +119,11 @@ const Schedule = () => {
     const newDate = new Date(currentDate);
     newDate.setDate(currentDate.getDate() + (direction === 'next' ? 1 : -1));
     setCurrentDate(newDate);
+  };
+
+  const handleViewStudents = (session: any) => {
+    setSelectedSession(session);
+    setIsStudentDialogOpen(true);
   };
 
   return (
@@ -191,8 +219,14 @@ const Schedule = () => {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        Take Attendance
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewStudents(session)}
+                        className="gap-1"
+                      >
+                        <Eye className="w-3 h-3" />
+                        View Students
                       </Button>
                       <Button variant="outline" size="sm">
                         Edit
@@ -266,6 +300,53 @@ const Schedule = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Students Dialog */}
+        <Dialog open={isStudentDialogOpen} onOpenChange={setIsStudentDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Students in {selectedSession?.title}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
+                <div>
+                  <p className="text-sm text-muted-foreground">Session</p>
+                  <p className="font-medium">{selectedSession?.title}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Time</p>
+                  <p className="font-medium">{selectedSession?.time}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Location</p>
+                  <p className="font-medium">{selectedSession?.location}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Instructor</p>
+                  <p className="font-medium">{selectedSession?.instructor}</p>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold mb-3">Enrolled Students ({selectedSession?.students})</h4>
+                <div className="max-h-60 overflow-y-auto space-y-2">
+                  {selectedSession?.studentList?.map((student: any) => (
+                    <div key={student.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{student.name}</p>
+                        <p className="text-sm text-muted-foreground">ID: {student.studentId}</p>
+                      </div>
+                      <Badge variant="outline">Enrolled</Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

@@ -143,16 +143,19 @@ const ExcuseApplications = () => {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6">
+      <div className="p-8 space-y-8">
+        {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Excuse Applications</h1>
-            <p className="text-muted-foreground">Manage student excuse letters and requests</p>
+            <h1 className="text-3xl font-bold text-education-navy">Excuse Applications</h1>
+            <p className="text-muted-foreground mt-1">
+              Manage student excuse letters and requests
+            </p>
           </div>
           
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="bg-gradient-primary shadow-glow">
                 <Plus className="w-4 h-4 mr-2" />
                 Upload Excuse
               </Button>
@@ -243,9 +246,9 @@ const ExcuseApplications = () => {
         </div>
 
         {/* Filters */}
-        <Card>
+        <Card className="bg-gradient-card border-0 shadow-card">
           <CardHeader>
-            <CardTitle>Filter Applications</CardTitle>
+            <CardTitle className="text-education-navy">Filter Applications</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-4">
@@ -275,9 +278,9 @@ const ExcuseApplications = () => {
         </Card>
 
         {/* Applications Table */}
-        <Card>
+        <Card className="bg-gradient-card border-0 shadow-card">
           <CardHeader>
-            <CardTitle>Excuse Applications</CardTitle>
+            <CardTitle className="text-education-navy">Excuse Applications</CardTitle>
             <CardDescription>
               {filteredApplications.length} application(s) found
             </CardDescription>
@@ -324,7 +327,7 @@ const ExcuseApplications = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => updateStatus(application.id, "Approved")}
-                              className="text-green-600 hover:text-green-700"
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
                             >
                               <Check className="w-4 h-4" />
                             </Button>
@@ -332,7 +335,7 @@ const ExcuseApplications = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => updateStatus(application.id, "Rejected")}
-                              className="text-red-600 hover:text-red-700"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                             >
                               <X className="w-4 h-4" />
                             </Button>
@@ -342,7 +345,7 @@ const ExcuseApplications = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => deleteApplication(application.id)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

@@ -13,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { UserPlus, Edit, Trash2, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface Account {
   id: string;
@@ -114,18 +115,21 @@ const Accounts = () => {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="p-8 space-y-8">
+        {/* Header */}
+        <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-education-navy">Account Management</h1>
-            <p className="text-muted-foreground">Manage facilitator accounts and permissions</p>
+            <p className="text-muted-foreground mt-1">
+              Manage facilitator accounts and permissions
+            </p>
           </div>
           <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
             setIsCreateDialogOpen(open);
             if (!open) resetForm();
           }}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button className="bg-gradient-primary shadow-glow gap-2">
                 <UserPlus className="w-4 h-4" />
                 Create Account
               </Button>
@@ -210,9 +214,9 @@ const Accounts = () => {
           </Dialog>
         </div>
 
-        <Card>
+        <Card className="bg-gradient-card border-0 shadow-card">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-education-navy">
               <Users className="w-5 h-5" />
               Facilitator Accounts ({accounts.length})
             </CardTitle>
@@ -232,9 +236,9 @@ const Accounts = () => {
                   <TableRow key={account.id}>
                     <TableCell className="font-medium">{account.username}</TableCell>
                     <TableCell>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      <Badge className="bg-gradient-primary/10 text-primary border-primary/20">
                         {account.role}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell>{new Date(account.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
@@ -243,16 +247,16 @@ const Accounts = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => handleEdit(account)}
-                          className="gap-1"
+                          className="gap-1 hover:bg-primary/10 hover:text-primary"
                         >
                           <Edit className="w-3 h-3" />
                           Edit
                         </Button>
                         <Button
-                          variant="destructive"
+                          variant="outline"
                           size="sm"
                           onClick={() => handleDelete(account.id)}
-                          className="gap-1"
+                          className="gap-1 hover:bg-destructive/10 hover:text-destructive border-destructive/20"
                         >
                           <Trash2 className="w-3 h-3" />
                           Delete
