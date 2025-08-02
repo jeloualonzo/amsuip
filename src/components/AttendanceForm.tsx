@@ -7,11 +7,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { CalendarIcon, Clock, Users, BookOpen, Calendar, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { sessionsApi } from "@/lib/api";
 
 type AttendanceType = "class" | "event" | "other";
 
-const AttendanceForm = () => {
+interface AttendanceFormProps {
+  onSessionCreated?: () => void;
+}
+
+const AttendanceForm = ({ onSessionCreated }: AttendanceFormProps) => {
   const [attendanceType, setAttendanceType] = useState<AttendanceType>("class");
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     department: "",
@@ -27,26 +33,60 @@ const AttendanceForm = () => {
 
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Attendance Session Created",
-      description: `${formData.title} session has been created successfully.`,
-    });
-    
-    // Reset form
-    setFormData({
-      title: "",
-      department: "",
-      year: "",
-      section: "",
-      date: "",
-      timeIn: "",
-      timeOut: "",
-      description: "",
-      venue: "",
-      capacity: ""
-    });
+    setLoading(true);
+
+    try {
+      const sessionData = {
+        title: formData.title,
+        description: formData.description,
+        session_type: attendanceType,
+        department: formData.department,
+        program: null, // Can be added later
+        year_level: formData.year ? parseInt(formData.year.replace(/\D/g, '')) : null,
+        section: formData.section || null,
+        date: formData.date,
+        start_time: formData.timeIn,
+        end_time: formData.timeOut || formData.timeIn,
+        location: attendanceType === "class" ? `Room ${formData.section || 'TBD'}` : formData.venue,
+        capacity: formData.capacity ? parseInt(formData.capacity) : null
+      };
+
+      await sessionsApi.create(sessionData);
+      
+      toast({
+        title: "Session Created!",
+        description: `${formData.title} has been scheduled successfully.`,
+      });
+      
+      // Reset form
+      setFormData({
+        title: "",
+        department: "",
+        year: "",
+        section: "",
+        date: "",
+        timeIn: "",
+        timeOut: "",
+        description: "",
+        venue: "",
+        capacity: ""
+      });
+      setAttendanceType("class");
+
+      if (onSessionCreated) {
+        onSessionCreated();
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create session. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getTypeIcon = (type: AttendanceType) => {
@@ -269,11 +309,12 @@ const AttendanceForm = () => {
               <Button 
                 type="submit" 
                 className={`${getTypeColor(attendanceType)} shadow-glow hover:shadow-elegant transition-all duration-300 flex-1`}
+                disabled={loading}
               >
                 <Users className="w-4 h-4 mr-2" />
-                Create Session & Start Tracking
+                {loading ? "Creating..." : "Create Session & Start Tracking"}
               </Button>
-              <Button type="button" variant="outline" className="px-8">
+              <Button type="button" variant="outline" className="px-8" disabled={loading}>
                 Save as Draft
               </Button>
             </div>

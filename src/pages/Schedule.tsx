@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import { useAuth } from '@/contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,77 +17,66 @@ import {
   Star,
   Eye
 } from "lucide-react";
-import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import AttendanceForm from "@/components/AttendanceForm";
+import { sessionsApi } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 const Schedule = () => {
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [isStudentDialogOpen, setIsStudentDialogOpen] = useState(false);
   const [isAddSessionOpen, setIsAddSessionOpen] = useState(false);
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const mockSchedule = [
-    {
-      id: 1,
-      title: "Computer Science 101",
-      type: "class",
-      time: "09:00 - 10:30",
-      location: "Room 201",
-      instructor: "Dr. Smith",
-      students: 45,
-      department: "Computer Science",
-      studentList: [
-        { id: 1, name: "John Doe", studentId: "2024001" },
-        { id: 2, name: "Jane Smith", studentId: "2024002" },
-        { id: 3, name: "Mike Johnson", studentId: "2024003" },
-        { id: 4, name: "Sarah Williams", studentId: "2024004" },
-        { id: 5, name: "David Brown", studentId: "2024005" }
-      ]
-    },
-    {
-      id: 2,
-      title: "Biology Lab Session",
-      type: "class", 
-      time: "10:45 - 12:15",
-      location: "Lab 3",
-      instructor: "Prof. Johnson",
-      students: 32,
-      department: "Science",
-      studentList: [
-        { id: 6, name: "Emma Davis", studentId: "2024006" },
-        { id: 7, name: "Alex Wilson", studentId: "2024007" },
-        { id: 8, name: "Lisa Chen", studentId: "2024008" }
-      ]
-    },
-    {
-      id: 3,
-      title: "Student Assembly",
-      type: "event",
-      time: "14:00 - 15:00",
-      location: "Main Auditorium", 
-      instructor: "Principal",
-      students: 300,
-      department: "Administration",
-      studentList: [
-        { id: 9, name: "All Students", studentId: "ALL" }
-      ]
-    },
-    {
-      id: 4,
-      title: "Math Tutoring Session",
-      type: "other",
-      time: "15:30 - 17:00",
-      location: "Room 105",
-      instructor: "Ms. Davis",
-      students: 20,
-      department: "Mathematics",
-      studentList: [
-        { id: 10, name: "Robert Taylor", studentId: "2024010" },
-        { id: 11, name: "Grace Lee", studentId: "2024011" }
-      ]
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  const fetchSessions = async () => {
+    try {
+      setLoading(true);
+      const data = await sessionsApi.getAll();
+      setSessions(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to load sessions. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchSessions();
+  }, []);
+
+  const handleSessionCreated = () => {
+    setIsAddSessionOpen(false);
+    fetchSessions();
+  };
+
+  // Filter sessions for today
+  const todaysSessions = sessions.filter(session => {
+    const sessionDate = new Date(session.date);
+    return sessionDate.toDateString() === currentDate.toDateString();
+  });
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -166,7 +158,7 @@ const Schedule = () => {
                   {formatDate(currentDate)}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  {mockSchedule.length} sessions scheduled
+                  {todaysSessions.length} sessions scheduled
                 </p>
               </div>
 
@@ -190,57 +182,78 @@ const Schedule = () => {
           </h3>
           
           <div className="grid gap-4">
-            {mockSchedule.map((session) => (
-              <Card key={session.id} className="bg-gradient-card border-0 shadow-card hover:shadow-elegant transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-lg bg-gradient-primary/10">
-                        {getTypeIcon(session.type)}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold text-education-navy">{session.title}</h4>
-                          {getTypeBadge(session.type)}
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {session.time}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {session.location}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            {session.students} students
-                          </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {session.department} • {session.instructor}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleViewStudents(session)}
-                        className="gap-1"
-                      >
-                        <Eye className="w-3 h-3" />
-                        View Students
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        Edit
-                      </Button>
-                    </div>
-                  </div>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading sessions...</p>
+              </div>
+            ) : todaysSessions.length === 0 ? (
+              <Card className="bg-gradient-card border-0 shadow-card">
+                <CardContent className="p-8 text-center">
+                  <Calendar className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold text-education-navy mb-2">No sessions scheduled</h3>
+                  <p className="text-muted-foreground mb-4">There are no sessions scheduled for this date.</p>
+                  <Button onClick={() => setIsAddSessionOpen(true)} className="bg-gradient-primary shadow-glow">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Session
+                  </Button>
                 </CardContent>
               </Card>
-            ))}
+            ) : (
+              todaysSessions.map((session) => (
+                <Card key={session.id} className="bg-gradient-card border-0 shadow-card hover:shadow-elegant transition-all duration-300">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-lg bg-gradient-primary/10">
+                          {getTypeIcon(session.session_type)}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-education-navy">{session.title}</h4>
+                            {getTypeBadge(session.session_type)}
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {session.start_time} - {session.end_time || 'Ongoing'}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {session.location}
+                            </div>
+                            {session.capacity && (
+                              <div className="flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                Capacity: {session.capacity}
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {session.department} {session.instructor?.first_name && `• ${session.instructor.first_name} ${session.instructor.last_name}`}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewStudents(session)}
+                          className="gap-1"
+                        >
+                          <Eye className="w-3 h-3" />
+                          View Details
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          Edit
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </div>
 
@@ -282,25 +295,25 @@ const Schedule = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="bg-gradient-card border-0 shadow-card">
             <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-education-navy">24</div>
-              <div className="text-sm text-muted-foreground">Sessions Today</div>
+              <div className="text-2xl font-bold text-education-navy">{sessions.length}</div>
+              <div className="text-sm text-muted-foreground">Total Sessions</div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-card border-0 shadow-card">
             <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-primary">18</div>
+              <div className="text-2xl font-bold text-primary">{sessions.filter(s => s.session_type === 'class').length}</div>
               <div className="text-sm text-muted-foreground">Classes</div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-card border-0 shadow-card">
             <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-accent">4</div>
+              <div className="text-2xl font-bold text-accent">{sessions.filter(s => s.session_type === 'event').length}</div>
               <div className="text-sm text-muted-foreground">Events</div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-card border-0 shadow-card">
             <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-education-green">2</div>
+              <div className="text-2xl font-bold text-education-green">{sessions.filter(s => s.session_type === 'other').length}</div>
               <div className="text-sm text-muted-foreground">Activities</div>
             </CardContent>
           </Card>
@@ -323,7 +336,7 @@ const Schedule = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Time</p>
-                  <p className="font-medium">{selectedSession?.time}</p>
+                  <p className="font-medium">{selectedSession?.start_time} - {selectedSession?.end_time || 'Ongoing'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Location</p>
@@ -331,22 +344,24 @@ const Schedule = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Instructor</p>
-                  <p className="font-medium">{selectedSession?.instructor}</p>
+                  <p className="font-medium">{selectedSession?.instructor ? `${selectedSession.instructor.first_name} ${selectedSession.instructor.last_name}` : 'TBD'}</p>
                 </div>
               </div>
               
               <div>
-                <h4 className="font-semibold mb-3">Enrolled Students ({selectedSession?.students})</h4>
-                <div className="max-h-60 overflow-y-auto space-y-2">
-                  {selectedSession?.studentList?.map((student: any) => (
-                    <div key={student.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{student.name}</p>
-                        <p className="text-sm text-muted-foreground">ID: {student.studentId}</p>
-                      </div>
-                      <Badge variant="outline">Enrolled</Badge>
-                    </div>
-                  ))}
+                <h4 className="font-semibold mb-3">Session Details</h4>
+                <div className="space-y-2">
+                  <p className="text-sm">
+                    <span className="font-medium">Type:</span> {selectedSession?.session_type}
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-medium">Department:</span> {selectedSession?.department}
+                  </p>
+                  {selectedSession?.description && (
+                    <p className="text-sm">
+                      <span className="font-medium">Description:</span> {selectedSession.description}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -362,7 +377,7 @@ const Schedule = () => {
                 Create New Session
               </DialogTitle>
             </DialogHeader>
-            <AttendanceForm />
+            <AttendanceForm onSessionCreated={handleSessionCreated} />
           </DialogContent>
         </Dialog>
       </div>
