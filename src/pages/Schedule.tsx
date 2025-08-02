@@ -16,11 +16,13 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import AttendanceForm from "@/components/AttendanceForm";
 
 const Schedule = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [isStudentDialogOpen, setIsStudentDialogOpen] = useState(false);
+  const [isAddSessionOpen, setIsAddSessionOpen] = useState(false);
 
   const mockSchedule = [
     {
@@ -137,7 +139,10 @@ const Schedule = () => {
               View and manage daily schedules and upcoming sessions.
             </p>
           </div>
-          <Button className="bg-gradient-primary shadow-glow">
+          <Button 
+            className="bg-gradient-primary shadow-glow"
+            onClick={() => setIsAddSessionOpen(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add Session
           </Button>
@@ -345,6 +350,19 @@ const Schedule = () => {
                 </div>
               </div>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add Session Dialog */}
+        <Dialog open={isAddSessionOpen} onOpenChange={setIsAddSessionOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Plus className="w-5 h-5" />
+                Create New Session
+              </DialogTitle>
+            </DialogHeader>
+            <AttendanceForm />
           </DialogContent>
         </Dialog>
       </div>
