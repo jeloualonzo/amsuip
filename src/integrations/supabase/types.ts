@@ -14,16 +14,289 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attendance: {
+        Row: {
+          id: string
+          notes: string | null
+          recorded_at: string | null
+          recorded_by: string
+          session_id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+          student_id: string
+        }
+        Insert: {
+          id?: string
+          notes?: string | null
+          recorded_at?: string | null
+          recorded_by: string
+          session_id: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          student_id: string
+        }
+        Update: {
+          id?: string
+          notes?: string | null
+          recorded_at?: string | null
+          recorded_by?: string
+          session_id?: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      excuse_applications: {
+        Row: {
+          created_at: string | null
+          id: string
+          reason: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          session_id: string | null
+          status: string | null
+          student_id: string
+          supporting_document_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          reason: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          session_id?: string | null
+          status?: string | null
+          student_id: string
+          supporting_document_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          reason?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          session_id?: string | null
+          status?: string | null
+          student_id?: string
+          supporting_document_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "excuse_applications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "excuse_applications_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "excuse_applications_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      sessions: {
+        Row: {
+          capacity: number | null
+          created_at: string | null
+          created_by: string
+          date: string
+          department: string
+          description: string | null
+          end_time: string
+          id: string
+          instructor_id: string | null
+          location: string
+          program: string | null
+          section: string | null
+          session_type: Database["public"]["Enums"]["session_type"]
+          start_time: string
+          title: string
+          updated_at: string | null
+          year_level: number | null
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string | null
+          created_by: string
+          date: string
+          department: string
+          description?: string | null
+          end_time: string
+          id?: string
+          instructor_id?: string | null
+          location: string
+          program?: string | null
+          section?: string | null
+          session_type: Database["public"]["Enums"]["session_type"]
+          start_time: string
+          title: string
+          updated_at?: string | null
+          year_level?: number | null
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string | null
+          created_by?: string
+          date?: string
+          department?: string
+          description?: string | null
+          end_time?: string
+          id?: string
+          instructor_id?: string | null
+          location?: string
+          program?: string | null
+          section?: string | null
+          session_type?: Database["public"]["Enums"]["session_type"]
+          start_time?: string
+          title?: string
+          updated_at?: string | null
+          year_level?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      students: {
+        Row: {
+          address: string | null
+          birthday: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string
+          id: string
+          last_name: string
+          phone: string | null
+          program: string
+          section: string
+          student_id: string
+          updated_at: string | null
+          year_level: number
+        }
+        Insert: {
+          address?: string | null
+          birthday?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          phone?: string | null
+          program: string
+          section: string
+          student_id: string
+          updated_at?: string | null
+          year_level: number
+        }
+        Update: {
+          address?: string | null
+          birthday?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string | null
+          program?: string
+          section?: string
+          student_id?: string
+          updated_at?: string | null
+          year_level?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "instructor" | "student"
+      attendance_status: "present" | "absent" | "late" | "excused"
+      session_type: "class" | "event" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +423,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "instructor", "student"],
+      attendance_status: ["present", "absent", "late", "excused"],
+      session_type: ["class", "event", "other"],
+    },
   },
 } as const
