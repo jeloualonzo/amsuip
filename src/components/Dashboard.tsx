@@ -6,13 +6,9 @@ import {
   Calendar, 
   TrendingUp,
   Clock,
-  CheckCircle,
-  BarChart3,
-  AlertTriangle,
-  Award
+  CheckCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { AnalyticsChart } from "@/components/AnalyticsChart";
 
 const Dashboard = () => {
   const stats = [
@@ -101,41 +97,9 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Quick Actions & Recent Sessions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Recent Sessions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card className="bg-gradient-card border-0 shadow-card">
-          <CardHeader>
-            <CardTitle className="text-education-navy">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Link to="/attendance">
-              <Button variant="outline" className="w-full justify-start gap-3 h-12 hover:bg-gradient-primary/5 hover:scale-105 transition-all duration-200">
-                <UserCheck className="w-5 h-5" />
-                Start New Attendance Session
-              </Button>
-            </Link>
-            <Link to="/students">
-              <Button variant="outline" className="w-full justify-start gap-3 h-12 hover:bg-gradient-accent/5 hover:scale-105 transition-all duration-200">
-                <Users className="w-5 h-5" />
-                Manage Students
-              </Button>
-            </Link>
-            <Link to="/records">
-              <Button variant="outline" className="w-full justify-start gap-3 h-12 hover:bg-gradient-primary/5 hover:scale-105 transition-all duration-200">
-                <BarChart3 className="w-5 h-5" />
-                View Analytics
-              </Button>
-            </Link>
-            <Link to="/schedule">
-              <Button variant="outline" className="w-full justify-start gap-3 h-12 hover:bg-gradient-accent/5 hover:scale-105 transition-all duration-200">
-                <Calendar className="w-5 h-5" />
-                Manage Schedule
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-2 bg-gradient-card border-0 shadow-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-education-navy">
               <Calendar className="w-5 h-5" />
@@ -144,13 +108,13 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {recentSessions.map((session, index) => (
-              <div key={index} className="flex items-center justify-between p-4 rounded-xl bg-background/50 border border-border/50 hover:shadow-card transition-all duration-200">
+              <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-background/50 border border-border/50">
                 <div>
                   <h4 className="font-medium text-education-navy">{session.name}</h4>
                   <p className="text-sm text-muted-foreground">{session.department} • {session.students} students</p>
                 </div>
                 <div className="text-right">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     session.status === 'Active' ? 'bg-accent/10 text-accent' :
                     session.status === 'Completed' ? 'bg-education-green/10 text-education-green' :
                     'bg-primary/10 text-primary'
@@ -163,33 +127,32 @@ const Dashboard = () => {
             ))}
           </CardContent>
         </Card>
-      </div>
 
-      {/* Alerts & Notifications */}
-      <Card className="bg-gradient-accent border-0 shadow-card">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-full bg-accent/10">
-              <AlertTriangle className="w-6 h-6 text-accent" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-card-foreground">Low Attendance Alert</h3>
-              <p className="text-sm text-card-foreground/80">3 classes have attendance below 70% today. Consider reaching out to students.</p>
-            </div>
-            <Button variant="secondary" size="sm">
-              View Details
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Analytics Charts */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <BarChart3 className="w-6 h-6 text-primary" />
-          <h2 className="text-2xl font-bold text-education-navy">Analytics Overview</h2>
-        </div>
-        <AnalyticsChart />
+        <Card className="bg-gradient-card border-0 shadow-card">
+          <CardHeader>
+            <CardTitle className="text-education-navy">Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Link to="/attendance">
+              <Button variant="outline" className="w-full justify-start gap-3 h-12 hover:bg-gradient-primary/5">
+                <UserCheck className="w-5 h-5" />
+                Start New Attendance Session
+              </Button>
+            </Link>
+            <Link to="/students">
+              <Button variant="outline" className="w-full justify-start gap-3 h-12 hover:bg-gradient-accent/5">
+                <Users className="w-5 h-5" />
+                Manage Students
+              </Button>
+            </Link>
+            <Link to="/records">
+              <Button variant="outline" className="w-full justify-start gap-3 h-12 hover:bg-gradient-primary/5">
+                <Calendar className="w-5 h-5" />
+                View Attendance Records
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
