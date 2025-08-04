@@ -66,6 +66,63 @@ export type Database = {
           },
         ]
       }
+      attendance_sessions: {
+        Row: {
+          absent_count: number
+          completed_at: string
+          completed_by: string
+          created_at: string
+          excused_count: number
+          id: string
+          late_count: number
+          present_count: number
+          session_id: string
+          total_students: number
+          updated_at: string
+        }
+        Insert: {
+          absent_count?: number
+          completed_at?: string
+          completed_by: string
+          created_at?: string
+          excused_count?: number
+          id?: string
+          late_count?: number
+          present_count?: number
+          session_id: string
+          total_students?: number
+          updated_at?: string
+        }
+        Update: {
+          absent_count?: number
+          completed_at?: string
+          completed_by?: string
+          created_at?: string
+          excused_count?: number
+          id?: string
+          late_count?: number
+          present_count?: number
+          session_id?: string
+          total_students?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_sessions_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_sessions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       excuse_applications: {
         Row: {
           created_at: string | null
@@ -236,14 +293,19 @@ export type Database = {
         Row: {
           address: string | null
           birthday: string | null
+          contact_no: string | null
           created_at: string | null
           email: string | null
           first_name: string
           id: string
           last_name: string
+          middle_initial: string | null
           phone: string | null
           program: string
           section: string
+          sex: string | null
+          signature_confidence_level: number | null
+          signature_images: string[] | null
           student_id: string
           updated_at: string | null
           year_level: number
@@ -251,14 +313,19 @@ export type Database = {
         Insert: {
           address?: string | null
           birthday?: string | null
+          contact_no?: string | null
           created_at?: string | null
           email?: string | null
           first_name: string
           id?: string
           last_name: string
+          middle_initial?: string | null
           phone?: string | null
           program: string
           section: string
+          sex?: string | null
+          signature_confidence_level?: number | null
+          signature_images?: string[] | null
           student_id: string
           updated_at?: string | null
           year_level: number
@@ -266,14 +333,19 @@ export type Database = {
         Update: {
           address?: string | null
           birthday?: string | null
+          contact_no?: string | null
           created_at?: string | null
           email?: string | null
           first_name?: string
           id?: string
           last_name?: string
+          middle_initial?: string | null
           phone?: string | null
           program?: string
           section?: string
+          sex?: string | null
+          signature_confidence_level?: number | null
+          signature_images?: string[] | null
           student_id?: string
           updated_at?: string | null
           year_level?: number

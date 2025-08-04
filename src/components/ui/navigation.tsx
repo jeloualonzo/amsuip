@@ -17,6 +17,7 @@ const Navigation = () => {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+    { icon: UserCheck, label: "Take Attendance", href: "/take-attendance" },
     { icon: FileText, label: "Records", href: "/records" },
     { icon: FileImage, label: "Excuse Application", href: "/excuse-applications" },
     { icon: Users, label: "Students", href: "/students" },

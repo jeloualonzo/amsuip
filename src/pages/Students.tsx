@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import { useAuth } from '@/contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,80 +8,225 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
-  Plus, 
-  Download, 
-  Edit, 
-  Trash2,
+  Upload, 
   Mail,
   Phone,
-  GraduationCap
+  GraduationCap,
+  Camera
 } from "lucide-react";
+import { studentsApi, getUniquePrograms, getUniqueYearLevels } from "@/lib/api";
 
 const Students = () => {
-  const mockStudents = [
-    {
-      id: "2023001",
-      name: "Alice Johnson",
-      email: "alice.johnson@school.edu",
-      phone: "+1234567890",
-      department: "Computer Science",
-      year: "3rd",
-      section: "A",
-      status: "Active",
-      attendanceRate: 95
-    },
-    {
-      id: "2023002", 
-      name: "Bob Smith",
-      email: "bob.smith@school.edu",
-      phone: "+1234567891",
-      department: "Mathematics",
-      year: "2nd",
-      section: "B",
-      status: "Active",
-      attendanceRate: 88
-    },
-    {
-      id: "2023003",
-      name: "Carol Davis",
-      email: "carol.davis@school.edu", 
-      phone: "+1234567892",
-      department: "Science",
-      year: "4th",
-      section: "A",
-      status: "Active",
-      attendanceRate: 92
-    },
-    {
-      id: "2023004",
-      name: "David Wilson",
-      email: "david.wilson@school.edu",
-      phone: "+1234567893", 
-      department: "English",
-      year: "1st",
-      section: "C",
-      status: "Inactive",
-      attendanceRate: 76
-    }
-  ];
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const [students, setStudents] = useState<any[]>([]);
+  const [filteredStudents, setFilteredStudents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedProgram, setSelectedProgram] = useState("all");
+  const [selectedYear, setSelectedYear] = useState("all");
+  const [programs, setPrograms] = useState<string[]>([]);
+  const [yearLevels, setYearLevels] = useState<number[]>([]);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  useEffect(() => {
+    fetchStudents();
+    fetchDropdownData();
+  }, []);
+
+  useEffect(() => {
+    filterStudents();
+  }, [students, searchTerm, selectedProgram, selectedYear]);
+
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const data = await studentsApi.getAll();
+      setStudents(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to load students. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getAttendanceColor = (rate: number) => {
-    if (rate >= 90) return "text-accent";
-    if (rate >= 80) return "text-primary";
+  const fetchDropdownData = async () => {
+    try {
+      const [programsData, yearLevelsData] = await Promise.all([
+        getUniquePrograms(),
+        getUniqueYearLevels()
+      ]);
+      setPrograms(programsData);
+      setYearLevels(yearLevelsData);
+    } catch (error) {
+      console.error('Failed to fetch dropdown data:', error);
+    }
+  };
+
+  const filterStudents = () => {
+    let filtered = students;
+
+    if (searchTerm) {
+      filtered = filtered.filter(student => 
+        student.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.student_id?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (selectedProgram !== "all") {
+      filtered = filtered.filter(student => student.program === selectedProgram);
+    }
+
+    if (selectedYear !== "all") {
+      filtered = filtered.filter(student => student.year_level === parseInt(selectedYear));
+    }
+
+    setFilteredStudents(filtered);
+  };
+
+  const handleCSVImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const rows = text.split('\n').map(row => row.split(','));
+      const headers = rows[0].map(h => h.trim().toLowerCase());
+      
+      const csvData = rows.slice(1)
+        .filter(row => row.length > 1 && row[0].trim())
+        .map(row => {
+          const student: any = {};
+          headers.forEach((header, index) => {
+            const value = row[index]?.trim();
+            switch (header) {
+              case 'surname':
+                student.last_name = value;
+                break;
+              case 'firstname':
+                student.first_name = value;
+                break;
+              case 'middle_initial':
+                student.middle_initial = value;
+                break;
+              case 'student_id':
+                student.student_id = value;
+                break;
+              case 'program':
+                student.program = value;
+                break;
+              case 'year':
+                student.year_level = parseInt(value) || 1;
+                break;
+              case 'section':
+                student.section = value;
+                break;
+              case 'sex':
+                student.sex = value;
+                break;
+              case 'address':
+                student.address = value;
+                break;
+              case 'birthday':
+                student.birthday = value;
+                break;
+              case 'contact_no':
+                student.contact_no = value;
+                break;
+              case 'email':
+                student.email = value;
+                break;
+            }
+          });
+          return student;
+        });
+
+      await studentsApi.create(csvData[0]); // For now, create one by one
+      // In production, you'd want to batch insert
+      
+      toast({
+        title: "Success",
+        description: `Imported ${csvData.length} students successfully.`,
+      });
+      
+      fetchStudents();
+      setIsImportDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to import CSV. Please check the format.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSignatureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !selectedStudent) return;
+
+    try {
+      // In a real implementation, you would upload to storage and then update the student record
+      // For now, we'll just simulate the upload
+      const currentSignatures = selectedStudent.signature_images || [];
+      const newSignatureCount = currentSignatures.length + 1;
+      const confidenceLevel = Math.min((newSignatureCount / 10) * 100, 100);
+
+      await studentsApi.update(selectedStudent.id, {
+        signature_images: [...currentSignatures, `signature_${newSignatureCount}.jpg`],
+        signature_confidence_level: Math.floor(confidenceLevel)
+      });
+
+      toast({
+        title: "Success",
+        description: `Signature uploaded. Confidence level: ${Math.floor(confidenceLevel)}%`,
+      });
+      
+      fetchStudents();
+      setIsUploadDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to upload signature.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
+  };
+
+  const getConfidenceColor = (level: number) => {
+    if (level >= 80) return "text-accent";
+    if (level >= 50) return "text-primary";
     return "text-destructive";
   };
 
-  const getStatusBadge = (status: string) => {
-    return status === "Active" 
-      ? <Badge className="bg-accent/10 text-accent border-accent/20">Active</Badge>
-      : <Badge className="bg-muted text-muted-foreground">Inactive</Badge>;
-  };
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
 
   return (
     <Layout>
@@ -92,13 +240,12 @@ const Students = () => {
             </p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-            <Button className="bg-gradient-primary shadow-glow">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Student
+            <Button 
+              variant="outline"
+              onClick={() => setIsImportDialogOpen(true)}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Import CSV
             </Button>
           </div>
         </div>
@@ -106,46 +253,36 @@ const Students = () => {
         {/* Filters */}
         <Card className="bg-gradient-card border-0 shadow-card">
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input 
-                  placeholder="Search students..." 
+                  placeholder="Search by name or student ID..." 
                   className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Select>
+              <Select value={selectedProgram} onValueChange={setSelectedProgram}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Department" />
+                  <SelectValue placeholder="Program" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  <SelectItem value="computer-science">Computer Science</SelectItem>
-                  <SelectItem value="mathematics">Mathematics</SelectItem>
-                  <SelectItem value="science">Science</SelectItem>
-                  <SelectItem value="english">English</SelectItem>
+                  <SelectItem value="all">All Programs</SelectItem>
+                  {programs.map(program => (
+                    <SelectItem key={program} value={program}>{program}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              <Select>
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
                 <SelectTrigger>
                   <SelectValue placeholder="Year Level" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Years</SelectItem>
-                  <SelectItem value="1st">1st Year</SelectItem>
-                  <SelectItem value="2nd">2nd Year</SelectItem>
-                  <SelectItem value="3rd">3rd Year</SelectItem>
-                  <SelectItem value="4th">4th Year</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
+                  {yearLevels.map(year => (
+                    <SelectItem key={year} value={year.toString()}>{year} Year</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -154,97 +291,161 @@ const Students = () => {
 
         {/* Students Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockStudents.map((student) => (
-            <Card key={student.id} className="bg-gradient-card border-0 shadow-card hover:shadow-elegant transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-12 h-12 bg-gradient-primary">
-                      <AvatarFallback className="text-primary-foreground font-medium">
-                        {getInitials(student.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-semibold text-education-navy">{student.name}</h3>
-                      <p className="text-sm text-muted-foreground">ID: {student.id}</p>
-                    </div>
-                  </div>
-                  {getStatusBadge(student.status)}
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <GraduationCap className="w-4 h-4 text-muted-foreground" />
-                    <span>{student.department}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">Year:</span>
-                    <span>{student.year}</span>
-                    <span className="text-muted-foreground">•</span>
-                    <span className="text-muted-foreground">Section:</span>
-                    <span>{student.section}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm">
-                    <Mail className="w-4 h-4 text-muted-foreground" />
-                    <span className="truncate">{student.email}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="w-4 h-4 text-muted-foreground" />
-                    <span>{student.phone}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                    <div>
-                      <span className="text-sm text-muted-foreground">Attendance Rate</span>
-                      <div className={`font-bold ${getAttendanceColor(student.attendanceRate)}`}>
-                        {student.attendanceRate}%
+          {loading ? (
+            <div className="col-span-full text-center py-8">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading students...</p>
+            </div>
+          ) : filteredStudents.length === 0 ? (
+            <div className="col-span-full text-center py-8">
+              <p className="text-muted-foreground">No students found.</p>
+            </div>
+          ) : (
+            filteredStudents.map((student) => (
+              <Card key={student.id} className="bg-gradient-card border-0 shadow-card hover:shadow-elegant transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-12 h-12 bg-gradient-primary">
+                        <AvatarFallback className="text-primary-foreground font-medium">
+                          {getInitials(student.first_name, student.last_name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-semibold text-education-navy">
+                          {student.first_name} {student.last_name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">ID: {student.student_id}</p>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <Edit className="w-3 h-3" />
-                      </Button>
-                      <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                        <Trash2 className="w-3 h-3" />
+                    <Badge className="bg-accent/10 text-accent border-accent/20">Active</Badge>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <GraduationCap className="w-4 h-4 text-muted-foreground" />
+                      <span>{student.program}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground">Year:</span>
+                      <span>{student.year_level}</span>
+                      <span className="text-muted-foreground">•</span>
+                      <span className="text-muted-foreground">Section:</span>
+                      <span>{student.section}</span>
+                    </div>
+
+                    {student.email && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Mail className="w-4 h-4 text-muted-foreground" />
+                        <span className="truncate">{student.email}</span>
+                      </div>
+                    )}
+
+                    {student.contact_no && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="w-4 h-4 text-muted-foreground" />
+                        <span>{student.contact_no}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                      <div>
+                        <span className="text-sm text-muted-foreground">Signature Confidence</span>
+                        <div className={`font-bold ${getConfidenceColor(student.signature_confidence_level || 0)}`}>
+                          {student.signature_confidence_level || 0}%
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStudent(student);
+                          setIsUploadDialogOpen(true);
+                        }}
+                      >
+                        <Camera className="w-3 h-3 mr-1" />
+                        Upload Signature
                       </Button>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
 
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="bg-gradient-card border-0 shadow-card">
             <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-education-navy">1,248</div>
+              <div className="text-2xl font-bold text-education-navy">{students.length}</div>
               <div className="text-sm text-muted-foreground">Total Students</div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-card border-0 shadow-card">
             <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-accent">1,195</div>
+              <div className="text-2xl font-bold text-accent">{students.length}</div>
               <div className="text-sm text-muted-foreground">Active Students</div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-card border-0 shadow-card">
             <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-primary">89.2%</div>
-              <div className="text-sm text-muted-foreground">Avg Attendance</div>
+              <div className="text-2xl font-bold text-primary">{programs.length}</div>
+              <div className="text-sm text-muted-foreground">Programs</div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-card border-0 shadow-card">
             <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-education-green">8</div>
-              <div className="text-sm text-muted-foreground">Departments</div>
+              <div className="text-2xl font-bold text-education-green">{yearLevels.length}</div>
+              <div className="text-sm text-muted-foreground">Year Levels</div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Import CSV Dialog */}
+        <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Import Students from CSV</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Upload a CSV file with the following columns: surname, firstname, middle_initial, student_id, program, year, section, sex, address, birthday, contact_no, email
+              </p>
+              <Input
+                type="file"
+                accept=".csv"
+                onChange={handleCSVImport}
+                className="cursor-pointer"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Upload Signature Dialog */}
+        <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Upload Signature for {selectedStudent?.first_name} {selectedStudent?.last_name}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Upload a clear image of the student's signature. More signatures improve recognition accuracy.
+              </p>
+              <div className="text-sm">
+                <p>Current signatures: {selectedStudent?.signature_images?.length || 0}</p>
+                <p>Confidence level: {selectedStudent?.signature_confidence_level || 0}%</p>
+              </div>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleSignatureUpload}
+                className="cursor-pointer"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

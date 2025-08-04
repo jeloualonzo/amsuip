@@ -230,3 +230,76 @@ export const excuseApplicationsApi = {
     return data;
   }
 };
+
+// Attendance Sessions API
+export const attendanceSessionsApi = {
+  getAll: async () => {
+    const { data, error } = await supabase
+      .from('attendance_sessions')
+      .select(`
+        *,
+        session:sessions(*),
+        completed_by_profile:profiles!attendance_sessions_completed_by_fkey(first_name, last_name)
+      `)
+      .order('completed_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  create: async (sessionData: any) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('attendance_sessions')
+      .insert([{ ...sessionData, completed_by: user.id }])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+};
+
+// Helper functions for dropdown data
+export const getUniquePrograms = async () => {
+  const { data, error } = await supabase
+    .from('students')
+    .select('program')
+    .neq('program', null);
+  
+  if (error) throw error;
+  return [...new Set(data.map(student => student.program))].filter(Boolean);
+};
+
+export const getUniqueYearLevels = async () => {
+  const { data, error } = await supabase
+    .from('students')
+    .select('year_level')
+    .neq('year_level', null);
+  
+  if (error) throw error;
+  return [...new Set(data.map(student => student.year_level))].filter(Boolean).sort();
+};
+
+export const getUniqueSections = async () => {
+  const { data, error } = await supabase
+    .from('students')
+    .select('section')
+    .neq('section', null);
+  
+  if (error) throw error;
+  return [...new Set(data.map(student => student.section))].filter(Boolean).sort();
+};
+
+// CSV Import function
+export const importStudentsFromCSV = async (csvData: any[]) => {
+  const { data, error } = await supabase
+    .from('students')
+    .insert(csvData)
+    .select();
+  
+  if (error) throw error;
+  return data;
+};

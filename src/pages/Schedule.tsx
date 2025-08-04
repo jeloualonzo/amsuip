@@ -230,7 +230,7 @@ const Schedule = () => {
                             )}
                           </div>
                           <p className="text-sm text-muted-foreground mt-1">
-                            {session.department} {session.instructor?.first_name && `• ${session.instructor.first_name} ${session.instructor.last_name}`}
+                            {session.program} {session.instructor?.first_name && `• ${session.instructor.first_name} ${session.instructor.last_name}`}
                           </p>
                         </div>
                       </div>
@@ -355,7 +355,7 @@ const Schedule = () => {
                     <span className="font-medium">Type:</span> {selectedSession?.session_type}
                   </p>
                   <p className="text-sm">
-                    <span className="font-medium">Department:</span> {selectedSession?.department}
+                    <span className="font-medium">Program:</span> {selectedSession?.program}
                   </p>
                   {selectedSession?.description && (
                     <p className="text-sm">

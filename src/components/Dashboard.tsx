@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -9,45 +10,109 @@ import {
   CheckCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { studentsApi, sessionsApi, attendanceSessionsApi } from "@/lib/api";
 
 const Dashboard = () => {
-  const stats = [
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    todayAttendance: 0,
+    activeSessions: 0,
+    completedToday: 0
+  });
+  const [recentSessions, setRecentSessions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [studentsData, sessionsData, attendanceSessionsData] = await Promise.all([
+        studentsApi.getAll(),
+        sessionsApi.getAll(),
+        attendanceSessionsApi.getAll()
+      ]);
+
+      const today = new Date().toDateString();
+      const todaySessions = sessionsData.filter(session => 
+        new Date(session.date).toDateString() === today
+      );
+      const completedToday = attendanceSessionsData.filter(session =>
+        new Date(session.completed_at).toDateString() === today
+      );
+
+      setStats({
+        totalStudents: studentsData.length,
+        todayAttendance: 0, // This would need actual attendance data calculation
+        activeSessions: todaySessions.length,
+        completedToday: completedToday.length
+      });
+
+      setRecentSessions(sessionsData.slice(0, 4));
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getSessionStatus = (session: any) => {
+    const now = new Date();
+    const sessionDate = new Date(session.date);
+    const today = new Date().toDateString();
+    
+    if (sessionDate.toDateString() === today) {
+      return "Active";
+    } else if (sessionDate < now) {
+      return "Completed";
+    } else {
+      return "Scheduled";
+    }
+  };
+
+  const dashboardStats = [
     {
       title: "Total Students",
-      value: "1,248",
+      value: stats.totalStudents.toString(),
       icon: Users,
-      change: "+12% from last month",
+      change: `${stats.totalStudents} enrolled`,
       color: "text-education-blue"
     },
     {
-      title: "Today's Attendance",
-      value: "892",
+      title: "Today's Sessions",
+      value: stats.activeSessions.toString(),
       icon: UserCheck,
-      change: "71% attendance rate",
+      change: `${stats.activeSessions} scheduled`,
       color: "text-accent"
     },
     {
       title: "Active Sessions",
-      value: "15",
+      value: stats.activeSessions.toString(),
       icon: Clock,
-      change: "3 events, 12 classes",
+      change: "Real-time data",
       color: "text-primary"
     },
     {
       title: "Completed Today",
-      value: "28",
+      value: stats.completedToday.toString(),
       icon: CheckCircle,
-      change: "18 classes, 10 activities",
+      change: "Attendance taken",
       color: "text-education-green"
     }
   ];
 
-  const recentSessions = [
-    { name: "Computer Science 101", department: "CS", students: 45, status: "Active", time: "9:00 AM" },
-    { name: "Biology Lab", department: "Science", students: 32, status: "Completed", time: "10:30 AM" },
-    { name: "Annual Sports Meet", department: "Sports", students: 156, status: "Active", time: "2:00 PM" },
-    { name: "Math Workshop", department: "Math", students: 28, status: "Scheduled", time: "3:30 PM" }
-  ];
+  if (loading) {
+    return (
+      <div className="p-8">
+        <div className="text-center py-8">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 space-y-8">
@@ -59,7 +124,7 @@ const Dashboard = () => {
             Welcome back! Here's what's happening today.
           </p>
         </div>
-        <Link to="/attendance">
+        <Link to="/take-attendance">
           <Button className="bg-gradient-primary shadow-glow hover:shadow-elegant transition-all duration-300">
             <UserCheck className="w-4 h-4 mr-2" />
             Take Attendance
@@ -69,7 +134,7 @@ const Dashboard = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
+        {dashboardStats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card key={index} className="bg-gradient-card border-0 shadow-card hover:shadow-elegant transition-all duration-300 animate-fade-in">
@@ -107,24 +172,28 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {recentSessions.map((session, index) => (
-              <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-background/50 border border-border/50">
-                <div>
-                  <h4 className="font-medium text-education-navy">{session.name}</h4>
-                  <p className="text-sm text-muted-foreground">{session.department} • {session.students} students</p>
+            {recentSessions.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No sessions found</p>
+            ) : (
+              recentSessions.map((session, index) => (
+                <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-background/50 border border-border/50">
+                  <div>
+                    <h4 className="font-medium text-education-navy">{session.title}</h4>
+                    <p className="text-sm text-muted-foreground">{session.program} • {session.location}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      getSessionStatus(session) === 'Active' ? 'bg-accent/10 text-accent' :
+                      getSessionStatus(session) === 'Completed' ? 'bg-education-green/10 text-education-green' :
+                      'bg-primary/10 text-primary'
+                    }`}>
+                      {getSessionStatus(session)}
+                    </span>
+                    <p className="text-sm text-muted-foreground mt-1">{session.start_time}</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    session.status === 'Active' ? 'bg-accent/10 text-accent' :
-                    session.status === 'Completed' ? 'bg-education-green/10 text-education-green' :
-                    'bg-primary/10 text-primary'
-                  }`}>
-                    {session.status}
-                  </span>
-                  <p className="text-sm text-muted-foreground mt-1">{session.time}</p>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -133,7 +202,7 @@ const Dashboard = () => {
             <CardTitle className="text-education-navy">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Link to="/attendance">
+            <Link to="/take-attendance">
               <Button variant="outline" className="w-full justify-start gap-3 h-12 hover:bg-gradient-primary/5">
                 <UserCheck className="w-5 h-5" />
                 Start New Attendance Session
