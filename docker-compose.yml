@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - PYTHONPATH=/app
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+      - BUCKET_NAME=${BUCKET_NAME:-signatures}
+    volumes:
+      - ./attendance-backend:/app/attendance-backend
+    command: >
+      sh -c "poetry run uvicorn attendance_backend.app:app 
+             --host 0.0.0.0 
+             --port 5000 
+             --reload"
+    # Uncomment the following lines if you're using a local database
+    # depends_on:
+    #   - db
+    # environment:
+    #   - DATABASE_URL=postgresql://postgres:postgres@db:5432/attendance
+
+  # Uncomment this if you want to run a local PostgreSQL instance
+  # db:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=attendance
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data/
+  #   ports:
+  #     - "5432:5432"
+
+  # Uncomment this if you want to run the frontend in development mode
+  # frontend:
+  #   build:
+  #     context: ./attendance-frontend
+  #     dockerfile: Dockerfile.dev
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./attendance-frontend:/app
+  #     - /app/node_modules
+  #   environment:
+  #     - NODE_ENV=development
+  #     - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+  #     - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+  #   depends_on:
+  #     - backend
+
+# Uncomment if using local PostgreSQL
+# volumes:
+#   postgres_data:

@@ -1,0 +1,44 @@
+# Project configuration
+[project]
+# The ID of your Supabase project
+# You can find this in your Supabase project settings
+project_id = ""
+
+# API Configuration
+[api]
+# The port to run the local API server on
+port = 54321
+
+# Database Configuration
+[db]
+# The port to run the local database on
+port = 54322
+# Database name
+db_name = "postgres"
+# Database password
+password = "postgres"
+
+# Storage Configuration
+[storage]
+# The port to run the local storage server on
+port = 5000
+
+# Auth Configuration
+[auth]
+# The port to run the local auth server on
+port = 9999
+
+# Realtime Configuration
+[realtime]
+# The port to run the local realtime server on
+port = 4000
+
+# Functions Configuration
+[functions]
+# The port to run the local functions server on
+port = 54321
+
+# Studio Configuration
+[studio]
+# The port to run the local studio on
+port = 3000

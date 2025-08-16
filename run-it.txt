@@ -1,0 +1,8 @@
+.venv\Scripts\activate
+cd attendance-backend
+python app.py
+
+
+
+cd attendance-frontend
+npm run dev
