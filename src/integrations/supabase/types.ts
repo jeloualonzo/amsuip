@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -16,40 +16,36 @@ export type Database = {
     Tables: {
       attendance: {
         Row: {
-          id: string
-          notes: string | null
-          recorded_at: string | null
-          recorded_by: string
-          session_id: string
-          status: Database["public"]["Enums"]["attendance_status"]
-          student_id: string
+          created_at: string | null
+          id: number
+          session_id: number
+          status: string
+          student_id: number
+          time_in: string | null
+          time_out: string | null
+          updated_at: string | null
         }
         Insert: {
-          id?: string
-          notes?: string | null
-          recorded_at?: string | null
-          recorded_by: string
-          session_id: string
-          status?: Database["public"]["Enums"]["attendance_status"]
-          student_id: string
+          created_at?: string | null
+          id?: number
+          session_id: number
+          status: string
+          student_id: number
+          time_in?: string | null
+          time_out?: string | null
+          updated_at?: string | null
         }
         Update: {
-          id?: string
-          notes?: string | null
-          recorded_at?: string | null
-          recorded_by?: string
-          session_id?: string
-          status?: Database["public"]["Enums"]["attendance_status"]
-          student_id?: string
+          created_at?: string | null
+          id?: number
+          session_id?: number
+          status?: string
+          student_id?: number
+          time_in?: string | null
+          time_out?: string | null
+          updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "attendance_recorded_by_fkey"
-            columns: ["recorded_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "attendance_session_id_fkey"
             columns: ["session_id"]
@@ -61,122 +57,11 @@ export type Database = {
             foreignKeyName: "attendance_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
-            referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      attendance_sessions: {
-        Row: {
-          absent_count: number
-          completed_at: string
-          completed_by: string
-          created_at: string
-          excused_count: number
-          id: string
-          late_count: number
-          present_count: number
-          session_id: string
-          total_students: number
-          updated_at: string
-        }
-        Insert: {
-          absent_count?: number
-          completed_at?: string
-          completed_by: string
-          created_at?: string
-          excused_count?: number
-          id?: string
-          late_count?: number
-          present_count?: number
-          session_id: string
-          total_students?: number
-          updated_at?: string
-        }
-        Update: {
-          absent_count?: number
-          completed_at?: string
-          completed_by?: string
-          created_at?: string
-          excused_count?: number
-          id?: string
-          late_count?: number
-          present_count?: number
-          session_id?: string
-          total_students?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "attendance_sessions_completed_by_fkey"
-            columns: ["completed_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: "student_signatures_view"
+            referencedColumns: ["student_id"]
           },
           {
-            foreignKeyName: "attendance_sessions_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      excuse_applications: {
-        Row: {
-          created_at: string | null
-          id: string
-          reason: string
-          reviewed_at: string | null
-          reviewed_by: string | null
-          session_id: string | null
-          status: string | null
-          student_id: string
-          supporting_document_url: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          reason: string
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          session_id?: string | null
-          status?: string | null
-          student_id: string
-          supporting_document_url?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          reason?: string
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          session_id?: string | null
-          status?: string | null
-          student_id?: string
-          supporting_document_url?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "excuse_applications_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "excuse_applications_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "sessions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "excuse_applications_student_id_fkey"
+            foreignKeyName: "attendance_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
@@ -188,103 +73,145 @@ export type Database = {
         Row: {
           created_at: string | null
           email: string
-          first_name: string
+          first_name: string | null
           id: string
-          last_name: string
-          role: Database["public"]["Enums"]["app_role"]
+          last_name: string | null
+          role: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           email: string
-          first_name: string
+          first_name?: string | null
           id: string
-          last_name: string
-          role?: Database["public"]["Enums"]["app_role"]
+          last_name?: string | null
+          role?: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string
-          first_name?: string
+          first_name?: string | null
           id?: string
-          last_name?: string
-          role?: Database["public"]["Enums"]["app_role"]
+          last_name?: string | null
+          role?: string
           updated_at?: string | null
         }
         Relationships: []
       }
       sessions: {
         Row: {
-          capacity: number | null
+          capacity: string | null
           created_at: string | null
-          created_by: string
           date: string
-          department: string
           description: string | null
-          end_time: string
-          id: string
-          instructor_id: string | null
-          location: string
-          program: string | null
-          section: string | null
-          session_type: Database["public"]["Enums"]["session_type"]
-          start_time: string
+          id: number
+          instructor: string
+          location: string | null
+          program: string
+          section: string
+          time_in: string | null
+          time_out: string | null
           title: string
+          type: string
           updated_at: string | null
-          year_level: number | null
+          year: string
         }
         Insert: {
-          capacity?: number | null
+          capacity?: string | null
           created_at?: string | null
-          created_by: string
           date: string
-          department: string
           description?: string | null
-          end_time: string
-          id?: string
-          instructor_id?: string | null
-          location: string
-          program?: string | null
-          section?: string | null
-          session_type: Database["public"]["Enums"]["session_type"]
-          start_time: string
+          id?: number
+          instructor: string
+          location?: string | null
+          program: string
+          section: string
+          time_in?: string | null
+          time_out?: string | null
           title: string
+          type?: string
           updated_at?: string | null
-          year_level?: number | null
+          year: string
         }
         Update: {
-          capacity?: number | null
+          capacity?: string | null
           created_at?: string | null
-          created_by?: string
           date?: string
-          department?: string
           description?: string | null
-          end_time?: string
-          id?: string
-          instructor_id?: string | null
-          location?: string
-          program?: string | null
-          section?: string | null
-          session_type?: Database["public"]["Enums"]["session_type"]
-          start_time?: string
+          id?: number
+          instructor?: string
+          location?: string | null
+          program?: string
+          section?: string
+          time_in?: string | null
+          time_out?: string | null
           title?: string
+          type?: string
           updated_at?: string | null
-          year_level?: number | null
+          year?: string
+        }
+        Relationships: []
+      }
+      signatures: {
+        Row: {
+          created_at: string
+          device_info: Json | null
+          features: Json | null
+          file_name: string
+          file_size: number
+          file_type: string
+          height: number | null
+          id: number
+          quality_score: number | null
+          storage_path: string
+          student_id: number
+          updated_at: string
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          device_info?: Json | null
+          features?: Json | null
+          file_name: string
+          file_size: number
+          file_type: string
+          height?: number | null
+          id?: number
+          quality_score?: number | null
+          storage_path: string
+          student_id: number
+          updated_at?: string
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          device_info?: Json | null
+          features?: Json | null
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          height?: number | null
+          id?: number
+          quality_score?: number | null
+          storage_path?: string
+          student_id?: number
+          updated_at?: string
+          width?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "sessions_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: "signatures_student_id_fkey"
+            columns: ["student_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: "student_signatures_view"
+            referencedColumns: ["student_id"]
           },
           {
-            foreignKeyName: "sessions_instructor_id_fkey"
-            columns: ["instructor_id"]
+            foreignKeyName: "signatures_student_id_fkey"
+            columns: ["student_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "students"
             referencedColumns: ["id"]
           },
         ]
@@ -296,19 +223,20 @@ export type Database = {
           contact_no: string | null
           created_at: string | null
           email: string | null
-          first_name: string
-          id: string
-          last_name: string
+          firstname: string
+          id: number
           middle_initial: string | null
-          phone: string | null
+          middlename: string | null
+          primary_signature_id: number | null
           program: string
           section: string
           sex: string | null
-          signature_confidence_level: number | null
-          signature_images: string[] | null
+          signature_url: string | null
+          signature_urls: string[] | null
           student_id: string
+          surname: string
           updated_at: string | null
-          year_level: number
+          year: string
         }
         Insert: {
           address?: string | null
@@ -316,19 +244,20 @@ export type Database = {
           contact_no?: string | null
           created_at?: string | null
           email?: string | null
-          first_name: string
-          id?: string
-          last_name: string
+          firstname: string
+          id?: number
           middle_initial?: string | null
-          phone?: string | null
+          middlename?: string | null
+          primary_signature_id?: number | null
           program: string
           section: string
           sex?: string | null
-          signature_confidence_level?: number | null
-          signature_images?: string[] | null
+          signature_url?: string | null
+          signature_urls?: string[] | null
           student_id: string
+          surname: string
           updated_at?: string | null
-          year_level: number
+          year: string
         }
         Update: {
           address?: string | null
@@ -336,39 +265,80 @@ export type Database = {
           contact_no?: string | null
           created_at?: string | null
           email?: string | null
-          first_name?: string
-          id?: string
-          last_name?: string
+          firstname?: string
+          id?: number
           middle_initial?: string | null
-          phone?: string | null
+          middlename?: string | null
+          primary_signature_id?: number | null
           program?: string
           section?: string
           sex?: string | null
-          signature_confidence_level?: number | null
-          signature_images?: string[] | null
+          signature_url?: string | null
+          signature_urls?: string[] | null
           student_id?: string
+          surname?: string
           updated_at?: string | null
-          year_level?: number
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_primary_signature_id_fkey"
+            columns: ["primary_signature_id"]
+            isOneToOne: false
+            referencedRelation: "signatures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_primary_signature_id_fkey"
+            columns: ["primary_signature_id"]
+            isOneToOne: false
+            referencedRelation: "student_signatures_view"
+            referencedColumns: ["signature_id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      student_signatures_view: {
+        Row: {
+          firstname: string | null
+          is_primary: boolean | null
+          last_updated: string | null
+          quality_score: number | null
+          signature_date: string | null
+          signature_id: number | null
+          storage_path: string | null
+          student_id: number | null
+          student_number: string | null
+          surname: string | null
         }
         Relationships: []
       }
     }
-    Views: {
-      [_ in never]: never
-    }
     Functions: {
-      has_role: {
-        Args: {
-          _user_id: string
-          _role: Database["public"]["Enums"]["app_role"]
-        }
+      compare_signatures: {
+        Args: { sig1_id: number; sig2_id: number }
+        Returns: number
+      }
+      get_primary_signature: {
+        Args: { student_id_param: number }
+        Returns: string
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      is_instructor: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      update_student_signatures: {
+        Args: { p_new_signature_url: string; p_student_id: number }
+        Returns: Json
       }
     }
     Enums: {
-      app_role: "admin" | "instructor" | "student"
-      attendance_status: "present" | "absent" | "late" | "excused"
-      session_type: "class" | "event" | "other"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -495,10 +465,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["admin", "instructor", "student"],
-      attendance_status: ["present", "absent", "late", "excused"],
-      session_type: ["class", "event", "other"],
-    },
+    Enums: {},
   },
 } as const
