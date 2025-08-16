@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../integrations/supabase/client";
 
 export interface Session {
   id: number;
@@ -137,8 +137,8 @@ export const getUniquePrograms = async (): Promise<string[]> => {
       .order('program');
     
     if (error) throw error;
-    const programs = [...new Set(data?.map(item => item.program) || [])];
-    return programs.filter(Boolean);
+    const programs = [...new Set(data?.map(item => item.program as string) || [])];
+    return programs.filter(Boolean) as string[];
   } catch (error) {
     console.error('Error fetching programs:', error);
     return [];
@@ -153,8 +153,8 @@ export const getUniqueYearLevels = async (): Promise<string[]> => {
       .order('year');
     
     if (error) throw error;
-    const years = [...new Set(data?.map(item => item.year) || [])];
-    return years.filter(Boolean);
+    const years = [...new Set(data?.map(item => item.year as string) || [])];
+    return years.filter(Boolean) as string[];
   } catch (error) {
     console.error('Error fetching year levels:', error);
     return [];
@@ -171,8 +171,8 @@ export const getUniqueSections = async (program?: string, year?: string): Promis
     const { data, error } = await query.order('section');
     
     if (error) throw error;
-    const sections = [...new Set(data?.map(item => item.section) || [])];
-    return sections.filter(Boolean);
+    const sections = [...new Set(data?.map(item => item.section as string) || [])];
+    return sections.filter(Boolean) as string[];
   } catch (error) {
     console.error('Error fetching sections:', error);
     return [];
