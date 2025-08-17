@@ -1,129 +1,547 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Clock, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { DataTable } from "@/components/ui/data-table";
+import { ColumnDef } from "@tanstack/react-table";
+import { FileText, Clock, AlertCircle, CheckCircle2, Plus, Search, Filter, Eye, Check, X } from "lucide-react";
+import { format } from "date-fns";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/lib/supabase";
 import Layout from "@/components/Layout";
 
-type Excuse = {
+type ExcuseStatus = 'pending' | 'approved' | 'rejected';
+
+type ExcuseApplication = {
   id: string;
-  studentName: string;
-  studentId: string;
-  date: string;
+  student_id: number;
+  session_id?: number;
+  absence_date: string;
   reason: string;
-  status: 'pending' | 'approved' | 'rejected';
-  submittedAt: string;
+  documentation_url?: string;
+  status: ExcuseStatus;
+  reviewed_by?: string;
+  reviewed_at?: string;
+  review_notes?: string;
+  created_at: string;
+  updated_at: string;
+  // Related data
+  student?: {
+    firstname: string;
+    surname: string;
+    student_id: string;
+    program: string;
+    year: string;
+    section: string;
+  };
+  session?: {
+    title: string;
+    date: string;
+  };
+};
+
+type ExcuseFormData = {
+  student_id: string;
+  session_id?: string;
+  absence_date: string;
+  reason: string;
+  documentation_url?: string;
 };
 
 const ExcuseApplicationContent = () => {
-  // Mock data for demonstration
-  const excuses: Excuse[] = [
-    {
-      id: '1',
-      studentName: 'John Doe',
-      studentId: '2023-001',
-      date: '2023-11-15',
-      reason: 'Medical appointment with doctor\'s note provided.',
-      status: 'pending',
-      submittedAt: '2023-11-14T10:30:00Z'
-    },
-    {
-      id: '2',
-      studentName: 'Jane Smith',
-      studentId: '2023-042',
-      date: '2023-11-16',
-      reason: 'Family emergency - out of town',
-      status: 'approved',
-      submittedAt: '2023-11-13T15:45:00Z'
-    },
-    {
-      id: '3',
-      studentName: 'Alex Johnson',
-      studentId: '2023-123',
-      date: '2023-11-17',
-      reason: 'University sports competition',
-      status: 'rejected',
-      submittedAt: '2023-11-12T09:15:00Z',
-    }
-  ];
+  const { toast } = useToast();
+  const [excuses, setExcuses] = useState<ExcuseApplication[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [selectedExcuse, setSelectedExcuse] = useState<ExcuseApplication | null>(null);
+  const [formData, setFormData] = useState<ExcuseFormData>({
+    student_id: '',
+    absence_date: '',
+    reason: '',
+  });
+  const [students, setStudents] = useState<any[]>([]);
+  const [sessions, setSessions] = useState<any[]>([]);
 
-  const getStatusBadge = (status: string) => {
+  useEffect(() => {
+    fetchExcuses();
+    fetchStudents();
+    fetchSessions();
+  }, []);
+
+  const fetchExcuses = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('excuse_applications')
+        .select(`
+          *,
+          students:student_id (
+            firstname,
+            surname,
+            student_id,
+            program,
+            year,
+            section
+          ),
+          sessions:session_id (
+            title,
+            date
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setExcuses(data || []);
+    } catch (error) {
+      console.error('Error fetching excuses:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch excuse applications",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStudents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('students')
+        .select('id, firstname, surname, student_id, program, year, section')
+        .order('firstname');
+
+      if (error) throw error;
+      setStudents(data || []);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    }
+  };
+
+  const fetchSessions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sessions')
+        .select('id, title, date')
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+      setSessions(data || []);
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+    }
+  };
+
+  const handleSubmitExcuse = async () => {
+    try {
+      const { error } = await supabase
+        .from('excuse_applications')
+        .insert([{
+          student_id: parseInt(formData.student_id),
+          session_id: formData.session_id ? parseInt(formData.session_id) : null,
+          absence_date: formData.absence_date,
+          reason: formData.reason,
+          documentation_url: formData.documentation_url,
+          status: 'pending'
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Excuse application submitted successfully",
+      });
+
+      setIsFormOpen(false);
+      setFormData({
+        student_id: '',
+        absence_date: '',
+        reason: '',
+      });
+      fetchExcuses();
+    } catch (error) {
+      console.error('Error submitting excuse:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit excuse application",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateStatus = async (id: string, status: ExcuseStatus, notes?: string) => {
+    try {
+      const { error } = await supabase
+        .from('excuse_applications')
+        .update({
+          status,
+          review_notes: notes,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Excuse application ${status}`,
+      });
+
+      fetchExcuses();
+      setIsViewOpen(false);
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getStatusBadge = (status: ExcuseStatus) => {
     switch (status) {
       case 'approved':
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
             <CheckCircle2 className="w-3 h-3 mr-1" />
             Approved
-          </span>
+          </Badge>
         );
       case 'rejected':
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
             <AlertCircle className="w-3 h-3 mr-1" />
             Rejected
-          </span>
+          </Badge>
         );
       default:
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
             <Clock className="w-3 h-3 mr-1" />
             Pending
-          </span>
+          </Badge>
         );
     }
   };
 
+  const columns: ColumnDef<ExcuseApplication>[] = [
+    {
+      accessorKey: "student.firstname",
+      header: "Student",
+      cell: ({ row }) => {
+        const student = row.original.student;
+        return (
+          <div>
+            <div className="font-medium">
+              {student?.firstname} {student?.surname}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {student?.student_id} • {student?.program}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "absence_date",
+      header: "Absence Date",
+      cell: ({ row }) => {
+        return format(new Date(row.getValue("absence_date")), 'MMM d, yyyy');
+      },
+    },
+    {
+      accessorKey: "reason",
+      header: "Reason",
+      cell: ({ row }) => {
+        const reason = row.getValue("reason") as string;
+        return (
+          <div className="max-w-xs truncate" title={reason}>
+            {reason}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        return getStatusBadge(row.getValue("status"));
+      },
+    },
+    {
+      accessorKey: "created_at",
+      header: "Submitted",
+      cell: ({ row }) => {
+        return format(new Date(row.getValue("created_at")), 'MMM d, yyyy');
+      },
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const excuse = row.original;
+        return (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSelectedExcuse(excuse);
+              setIsViewOpen(true);
+            }}
+          >
+            <Eye className="h-4 w-4 mr-1" />
+            View
+          </Button>
+        );
+      },
+    },
+  ];
+
+  const filterOptions = [
+    {
+      label: "Status",
+      value: "status",
+      options: [
+        { label: "All Statuses", value: "all" },
+        { label: "Pending", value: "pending" },
+        { label: "Approved", value: "approved" },
+        { label: "Rejected", value: "rejected" },
+      ],
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Excuse Applications</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Excuse Applications</h1>
           <p className="text-muted-foreground">
-            Review and manage student excuse applications
+            Review and manage student excuse applications for absences
           </p>
         </div>
-        <Button className="bg-gradient-primary shadow-glow h-9">
-          <FileText className="w-4 h-4 mr-2" />
-          New Excuse Application
+        <Button 
+          className="bg-gradient-primary shadow-glow h-9"
+          onClick={() => setIsFormOpen(true)}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Application
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Pending Reviews</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            All Applications
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {excuses.length > 0 ? (
-            <div className="space-y-4">
-              {excuses.map((excuse) => (
-                <div key={excuse.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium">{excuse.studentName} <span className="text-muted-foreground text-sm">({excuse.studentId})</span></h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        For: {new Date(excuse.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                      </p>
-                      <p className="mt-2">{excuse.reason}</p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {getStatusBadge(excuse.status)}
-                      <Button variant="outline" size="sm">
-                        View Details
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+          {loading ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
             </div>
           ) : (
-            <div className="text-center py-8">
-              <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-sm font-medium">No pending applications</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                All caught up! No excuse applications require review.
-              </p>
-            </div>
+            <DataTable
+              columns={columns}
+              data={excuses}
+              searchKey="student.firstname"
+              filterOptions={filterOptions}
+            />
           )}
         </CardContent>
       </Card>
+
+      {/* Form Dialog */}
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>New Excuse Application</DialogTitle>
+            <DialogDescription>
+              Submit a new excuse application for a student absence.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="student">Student</Label>
+              <Select
+                value={formData.student_id}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, student_id: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select student" />
+                </SelectTrigger>
+                <SelectContent>
+                  {students.map((student) => (
+                    <SelectItem key={student.id} value={student.id.toString()}>
+                      {student.firstname} {student.surname} ({student.student_id})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="session">Session (Optional)</Label>
+              <Select
+                value={formData.session_id || ''}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, session_id: value || undefined }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select session (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sessions.map((session) => (
+                    <SelectItem key={session.id} value={session.id.toString()}>
+                      {session.title} - {format(new Date(session.date), 'MMM d, yyyy')}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="absence_date">Absence Date</Label>
+              <Input
+                id="absence_date"
+                type="date"
+                value={formData.absence_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, absence_date: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="reason">Reason</Label>
+              <Textarea
+                id="reason"
+                value={formData.reason}
+                onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
+                placeholder="Explain the reason for absence..."
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="documentation">Documentation URL (Optional)</Label>
+              <Input
+                id="documentation"
+                value={formData.documentation_url || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, documentation_url: e.target.value }))}
+                placeholder="Link to supporting documents..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsFormOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmitExcuse}
+              disabled={!formData.student_id || !formData.absence_date || !formData.reason}
+            >
+              Submit Application
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Dialog */}
+      <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Excuse Application Details</DialogTitle>
+          </DialogHeader>
+          {selectedExcuse && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Student</Label>
+                  <p className="text-sm">
+                    {selectedExcuse.student?.firstname} {selectedExcuse.student?.surname}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedExcuse.student?.student_id} • {selectedExcuse.student?.program}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status</Label>
+                  <div className="mt-1">
+                    {getStatusBadge(selectedExcuse.status)}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium">Absence Date</Label>
+                <p className="text-sm">
+                  {format(new Date(selectedExcuse.absence_date), 'EEEE, MMMM d, yyyy')}
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium">Reason</Label>
+                <p className="text-sm whitespace-pre-wrap">{selectedExcuse.reason}</p>
+              </div>
+
+              {selectedExcuse.documentation_url && (
+                <div>
+                  <Label className="text-sm font-medium">Documentation</Label>
+                  <a
+                    href={selectedExcuse.documentation_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    View Documentation
+                  </a>
+                </div>
+              )}
+
+              {selectedExcuse.review_notes && (
+                <div>
+                  <Label className="text-sm font-medium">Review Notes</Label>
+                  <p className="text-sm whitespace-pre-wrap">{selectedExcuse.review_notes}</p>
+                </div>
+              )}
+
+              <div className="text-xs text-muted-foreground">
+                Submitted: {format(new Date(selectedExcuse.created_at), 'MMM d, yyyy h:mm a')}
+                {selectedExcuse.reviewed_at && (
+                  <span className="ml-4">
+                    Reviewed: {format(new Date(selectedExcuse.reviewed_at), 'MMM d, yyyy h:mm a')}
+                  </span>
+                )}
+              </div>
+
+              {selectedExcuse.status === 'pending' && (
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    className="text-green-600 border-green-200 hover:bg-green-50"
+                    onClick={() => handleUpdateStatus(selectedExcuse.id, 'approved')}
+                  >
+                    <Check className="h-4 w-4 mr-1" />
+                    Approve
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="text-red-600 border-red-200 hover:bg-red-50"
+                    onClick={() => handleUpdateStatus(selectedExcuse.id, 'rejected')}
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Reject
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

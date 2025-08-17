@@ -305,10 +305,38 @@ const TakeAttendanceContent: React.FC = () => {
 
       <Tabs defaultValue="today" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="today">Today</TabsTrigger>
-          <TabsTrigger value="tomorrow">Tomorrow</TabsTrigger>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="past">Past</TabsTrigger>
+          <TabsTrigger value="today" className="relative">
+            Today
+            {todaysSessions.length > 0 && (
+              <Badge className="ml-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                {todaysSessions.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="tomorrow" className="relative">
+            Tomorrow
+            {tomorrowsSessions.length > 0 && (
+              <Badge className="ml-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                {tomorrowsSessions.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="upcoming" className="relative">
+            Upcoming
+            {upcomingSessions.length > 0 && (
+              <Badge className="ml-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                {upcomingSessions.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="past" className="relative">
+            Past
+            {pastSessions.length > 0 && (
+              <Badge className="ml-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                {pastSessions.length}
+              </Badge>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="today" className="space-y-4">
