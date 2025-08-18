@@ -136,8 +136,19 @@ const Accounts = () => {
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [showInactive, setShowInactive] = useState(false);
-  const [showUserDialog, setShowUserDialog] = useState(false);
   const { user } = useAuth();
+  const [showUserDialog, setShowUserDialog] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
+    email: user?.email || ''
+  });
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
   
   // Mock data
   const [accounts, setAccounts] = useState<Account[]>(() => generateMockAccounts(25));
@@ -463,7 +474,7 @@ const Accounts = () => {
 
       {/* User Details Dialog */}
       <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserCog className="h-5 w-5" />
@@ -474,37 +485,106 @@ const Accounts = () => {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span>Email:</span>
-                <span className="ml-auto font-mono text-sm">{user?.email || 'No email found'}</span>
+          <div className="grid gap-6 py-4">
+            {/* Profile Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground">Profile Information</h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setEditingProfile(!editingProfile)}
+                  className="h-8 px-2 text-xs"
+                >
+                  <Edit className="h-3 w-3 mr-1" />
+                  {editingProfile ? 'Cancel' : 'Edit'}
+                </Button>
               </div>
+
+              {/* Name Field */}
+              <div className="space-y-2">
+                <Label htmlFor="profile-name" className="text-sm font-medium flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  Name
+                </Label>
+                {editingProfile ? (
+                  <Input
+                    id="profile-name"
+                    value={profileData.name}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter your full name"
+                  />
+                ) : (
+                  <div className="p-2 bg-muted rounded-md text-sm">
+                    {profileData.name || 'No name set'}
+                  </div>
+                )}
+              </div>
+
+              {/* Email Field */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  Email
+                </Label>
+                <div className="p-2 bg-muted rounded-md text-sm font-mono">
+                  {user?.email || 'No email found'}
+                </div>
+              </div>
+
+              {/* Role Field */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-muted-foreground" />
+                  Role
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    Administrator
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    Full system access
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Security Section */}
+            <div className="space-y-4 border-t pt-4">
+              <h3 className="text-sm font-semibold text-foreground">Security</h3>
               
-              <div className="space-y-2 pt-4">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-sm font-medium flex items-center gap-2">
-                    <Lock className="h-4 w-4" />
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-muted-foreground" />
                     Password
                   </Label>
-                  <Button variant="ghost" size="sm" className="h-8 px-2 text-xs">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 px-2 text-xs text-blue-600 hover:text-blue-700"
+                    onClick={() => setShowPasswordDialog(true)}
+                  >
+                    <Key className="h-3 w-3 mr-1" />
                     Change Password
                   </Button>
                 </div>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  value="••••••••" 
-                  readOnly 
-                  className="font-mono"
-                />
+                <div className="p-2 bg-muted rounded-md">
+                  <span className="font-mono text-sm">••••••••••••</span>
+                </div>
               </div>
               
-              <div className="pt-4">
-                <p className="text-xs text-muted-foreground">
-                  Last login: {user?.last_sign_in_at ? format(new Date(user.last_sign_in_at), 'MMM d, yyyy h:mm a') : 'N/A'}
-                </p>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  Last Login
+                </Label>
+                <div className="p-2 bg-muted rounded-md text-sm">
+                  {user?.last_sign_in_at 
+                    ? format(new Date(user.last_sign_in_at), 'MMM d, yyyy h:mm a') 
+                    : 'Never logged in'
+                  }
+                </div>
               </div>
             </div>
           </div>
@@ -512,20 +592,129 @@ const Accounts = () => {
           <div className="flex justify-end gap-2 pt-2">
             <Button 
               variant="outline" 
-              onClick={() => setShowUserDialog(false)}
+              onClick={() => {
+                setShowUserDialog(false);
+                setEditingProfile(false);
+              }}
             >
               Close
             </Button>
+            {editingProfile && (
+              <Button 
+                onClick={() => {
+                  toast({
+                    title: "Profile updated",
+                    description: "Your profile information has been updated successfully.",
+                  });
+                  setEditingProfile(false);
+                  setShowUserDialog(false);
+                }}
+              >
+                Save Changes
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Password Dialog */}
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5" />
+              <span>Change Password</span>
+            </DialogTitle>
+            <DialogDescription>
+              Update your account password. Make sure to use a strong, unique password.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="current-password">Current Password</Label>
+              <Input
+                id="current-password"
+                type="password"
+                value={passwordData.currentPassword}
+                onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                placeholder="Enter current password"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                placeholder="Enter new password"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm New Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={passwordData.confirmPassword}
+                onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                placeholder="Confirm new password"
+              />
+            </div>
+            
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p>Password requirements:</p>
+              <ul className="list-disc list-inside space-y-0.5 ml-2">
+                <li>At least 8 characters long</li>
+                <li>Include uppercase and lowercase letters</li>
+                <li>Include at least one number</li>
+                <li>Include at least one special character</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-2">
             <Button 
+              variant="outline" 
               onClick={() => {
-                toast({
-                  title: "Profile updated",
-                  description: "Your account information has been updated.",
-                });
-                setShowUserDialog(false);
+                setShowPasswordDialog(false);
+                setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
               }}
             >
-              Save changes
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (passwordData.newPassword !== passwordData.confirmPassword) {
+                  toast({
+                    title: "Password mismatch",
+                    description: "New passwords do not match. Please try again.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                
+                if (passwordData.newPassword.length < 8) {
+                  toast({
+                    title: "Password too short",
+                    description: "Password must be at least 8 characters long.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                
+                toast({
+                  title: "Password updated",
+                  description: "Your password has been changed successfully.",
+                });
+                setShowPasswordDialog(false);
+                setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+              }}
+              disabled={!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+            >
+              Update Password
             </Button>
           </div>
         </DialogContent>

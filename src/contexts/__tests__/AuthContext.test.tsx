@@ -1,6 +1,5 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
-import { AuthProvider } from '../AuthContext';
-import { AuthContext } from '../auth-context';
+import { AuthProvider, AuthContext } from '../AuthContext';
 import { supabase } from '@/lib/supabase';
 import type { AuthResponse } from '@/types/auth';
 
