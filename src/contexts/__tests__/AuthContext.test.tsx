@@ -1,4 +1,5 @@
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/dom';
 import { AuthProvider } from '../AuthContext';
 import { AuthContext } from '../auth-context';
 import { supabase } from '@/lib/supabase';
