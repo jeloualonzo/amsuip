@@ -22,6 +22,7 @@ const mockSupabase = {
   insert: jest.fn().mockReturnThis(),
   update: jest.fn().mockReturnThis(),
   delete: jest.fn().mockReturnThis(),
+  upsert: jest.fn().mockReturnThis(),
   eq: jest.fn().mockReturnThis(),
   or_: jest.fn().mockReturnThis(),
   order: jest.fn().mockReturnThis(),
