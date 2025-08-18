@@ -1121,9 +1121,13 @@ const Schedule = () => {
         setIsModalOpen(open);
         if (!open) {
           setEditingSession(null);
+          // Clear any form state that might persist
+          setTimeout(() => {
+            setEditingSession(null);
+          }, 100);
         }
       }}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           
           <div className="py-4">
             <AttendanceForm 
@@ -1311,7 +1315,7 @@ const Schedule = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="px-2"
+                          className="px-3 py-2 hover:bg-blue-50 hover:border-blue-200 transition-colors"
                           onClick={() => navigate(`/sessions/${session.id}/students`)}
                         >
                           <Users className="h-4 w-4" />
@@ -1319,7 +1323,7 @@ const Schedule = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="px-2"
+                          className="px-3 py-2 hover:bg-green-50 hover:border-green-200 transition-colors"
                           onClick={() => handleEditSession(session)}
                         >
                           <SquarePen className="h-4 w-4" />
@@ -1327,7 +1331,7 @@ const Schedule = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="px-2 text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                          className="px-3 py-2 text-destructive hover:text-destructive hover:bg-red-50 hover:border-red-200 transition-colors"
                           onClick={() => confirmDeleteSession(session.id)}
                         >
                           <Trash2 className="h-4 w-4" />
