@@ -71,6 +71,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  // Sign up with email and password
+  const signUp = useCallback(async (email: string, password: string, firstName: string, lastName: string, role: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            role: role,
+          },
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      });
+      
+      if (signUpError) {
+        setError(signUpError.message);
+        return { error: signUpError };
+      }
+      
+      return { data, error: null };
+    } catch (err) {
+      const error = err as AuthError;
+      setError(error.message || 'Failed to sign up');
+      return { error };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Sign out
   const signOut = useCallback(async () => {
     setLoading(true);
@@ -169,6 +203,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     // Methods
     signIn,
+    signUp,
     signOut,
     resetPassword,
     updatePassword,

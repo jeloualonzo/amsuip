@@ -24,6 +24,7 @@ export type AuthContextType = {
   
   // Methods
   signIn: (email: string, password: string) => Promise<AuthResponse>;
+  signUp: (email: string, password: string, firstName: string, lastName: string, role: string) => Promise<AuthResponse>;
   signOut: () => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>;

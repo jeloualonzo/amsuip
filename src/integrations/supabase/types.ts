@@ -245,6 +245,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           created_at: string | null
           department: string | null
           email: string
@@ -252,10 +254,15 @@ export type Database = {
           id: string
           last_name: string | null
           position: string | null
+          rejected_at: string | null
+          rejected_by: string | null
           role: string
+          status: string | null
           updated_at: string | null
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string | null
           department?: string | null
           email: string
@@ -263,10 +270,15 @@ export type Database = {
           id: string
           last_name?: string | null
           position?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
           role?: string
+          status?: string | null
           updated_at?: string | null
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string | null
           department?: string | null
           email?: string
@@ -274,7 +286,10 @@ export type Database = {
           id?: string
           last_name?: string | null
           position?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
           role?: string
+          status?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -540,6 +555,10 @@ export type Database = {
       }
     }
     Functions: {
+      approve_user: {
+        Args: { approver_id: string; user_id: string }
+        Returns: Json
+      }
       compare_signatures: {
         Args: { sig1_id: number; sig2_id: number }
         Returns: number
@@ -555,6 +574,10 @@ export type Database = {
       is_instructor: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      reject_user: {
+        Args: { rejector_id: string; user_id: string }
+        Returns: Json
       }
       update_student_signatures: {
         Args: { p_new_signature_url: string; p_student_id: number }
