@@ -403,7 +403,7 @@ export default function SessionStudents() {
 
   return (
     <Layout>
-      <div className="p-3 space-y-4 max-w-7xl mx-auto">
+      <div className="px-4 py-3 space-y-4 max-w-7xl mx-auto">
         {/* Page Header - Session Title */}
         <div className="space-y-0.5">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
@@ -414,9 +414,9 @@ export default function SessionStudents() {
           </p>
         </div>
 
-        {/* Session Details - Program Info */}
+        {/* Session Details - Program Info with Students List */}
         <Card className="border-0 shadow-sm overflow-hidden w-full">
-          <CardContent className="p-3">
+          <CardContent className="p-4">
             {/* Date & Time */}
             <div className="text-center space-y-0.5 mb-4">
               <h2 className="text-lg font-semibold text-foreground">
@@ -433,7 +433,7 @@ export default function SessionStudents() {
             </div>
             
             {/* Program Info Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-6">
               <div className="bg-gradient-to-br from-primary/5 to-primary/10 p-2 rounded-lg border border-primary/10 hover:border-primary/20 transition-colors">
                 <div className="flex items-start gap-2">
                   <div className="p-1.5 rounded-md bg-primary/10 text-primary">
@@ -482,7 +482,7 @@ export default function SessionStudents() {
             </div>
             
             {session.description && (
-              <div className="mt-3 p-2 bg-muted/10 rounded-md border border-muted/20 hover:border-muted/30 transition-colors group">
+              <div className="mb-6 p-2 bg-muted/10 rounded-md border border-muted/20 hover:border-muted/30 transition-colors group">
                 <div className="flex items-start gap-2">
                   <div className="p-1 rounded-sm bg-primary/5 text-primary mt-0.5">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-info">
@@ -500,28 +500,24 @@ export default function SessionStudents() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
 
-        {/* Students List Section */}
-        <div className="space-y-2 mt-3">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-            <h2 className="text-lg font-bold text-foreground">
-              Students {pagination.totalPages > 1 && `(Page ${pagination.currentPage} of ${pagination.totalPages})`}
-            </h2>
-            <div className="relative w-full sm:w-56">
-              <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-muted-foreground w-3.5 h-3.5" />
-              <Input
-                placeholder="Search by name or ID..."
-                className="pl-8 h-8 text-xs w-full bg-background/80 border-border/50 hover:border-border/70 focus:border-primary/50 transition-colors"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
+            {/* Students List Section Inside Same Card */}
+            <div className="border-t border-border/30 pt-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                <h3 className="text-lg font-bold text-foreground">
+                  Students {pagination.totalPages > 1 && `(Page ${pagination.currentPage} of ${pagination.totalPages})`}
+                </h3>
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    placeholder="Search by name or ID..."
+                    className="pl-10 h-9 w-full bg-background/80 border-border/50 hover:border-border/70 focus:border-primary/50 transition-colors"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
 
-          <Card className="border-0 shadow-sm overflow-hidden">
-            <CardContent className="p-0">
               {paginatedStudents.length > 0 ? (
                 <div className="bg-white rounded-md border border-gray-200 overflow-hidden">
                   <div className="overflow-x-auto">
@@ -536,18 +532,6 @@ export default function SessionStudents() {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {paginatedStudents.map((student) => {
-                          // Function to get initials from full name
-                          const getInitials = (name: string) => {
-                            if (!name) return '';
-                            return name
-                              .split(' ')
-                              .filter(part => part.length > 0)
-                              .map(part => part[0])
-                              .join('')
-                              .toUpperCase()
-                              .substring(0, 2);
-                          };
-                          
                           return (
                             <tr key={student.id} className="hover:bg-gray-50">
                               <td className="px-3 py-2 whitespace-nowrap">
@@ -575,7 +559,7 @@ export default function SessionStudents() {
                   <PaginationControls />
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
                   <div className="p-4 rounded-full bg-muted/30 mb-4">
                     <User className="w-12 h-12 text-muted-foreground/60" />
                   </div>
@@ -598,9 +582,9 @@ export default function SessionStudents() {
                   )}
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );
