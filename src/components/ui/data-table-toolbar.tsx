@@ -2,7 +2,7 @@ import * as React from "react"
 import { Table } from "@tanstack/react-table"
 import { Input } from "./input"
 import { Button } from "./button"
-import { Plus, X } from "lucide-react"
+import { Plus, X, Search } from "lucide-react"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
 import { DataTableViewOptions } from "./data-table-view-options"
 
@@ -26,14 +26,17 @@ export function DataTableToolbar<TData>({
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
-        <Input
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-muted-foreground w-3.5 h-3.5" />
+          <Input
           placeholder={`Search ${searchKey}...`}
           value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn(searchKey)?.setFilterValue(event.target.value)
           }
-          className="h-8 w-[150px] lg:w-[250px]"
+          className="pl-8 h-9 w-[150px] lg:w-[250px] text-sm"
         />
+        </div>
         {filterOptions.map((option) => (
           <DataTableFacetedFilter
             key={option.value}
@@ -41,12 +44,13 @@ export function DataTableToolbar<TData>({
             title={option.label}
             options={option.options}
           />
+        </div>
         ))}
         {isFiltered && (
           <Button
             variant="ghost"
             onClick={() => table.resetColumnFilters()}
-            className="h-8 px-2 lg:px-3"
+            className="h-9 px-2 lg:px-3 text-xs"
           >
             Reset
             <X className="ml-2 h-4 w-4" />
@@ -54,7 +58,7 @@ export function DataTableToolbar<TData>({
         )}
       </div>
       <div className="flex items-center space-x-2">
-        <Button className="h-8">
+        <Button className="h-9 text-xs">
           <Plus className="mr-2 h-4 w-4" />
           Add New
         </Button>
