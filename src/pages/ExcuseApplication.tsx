@@ -22,7 +22,7 @@ type ExcuseApplication = {
   student_id: number;
   session_id?: number;
   absence_date: string;
-  excuse_image_url?: string;
+  reason: string;
   documentation_url?: string;
   status: ExcuseStatus;
   reviewed_by?: string;
@@ -49,7 +49,7 @@ type ExcuseFormData = {
   student_id: string;
   session_id?: string;
   absence_date: string;
-  excuse_image?: File;
+  reason: string;
   documentation_url?: string;
 };
 
@@ -63,6 +63,7 @@ const ExcuseApplicationContent = () => {
   const [formData, setFormData] = useState<ExcuseFormData>({
     student_id: '',
     absence_date: '',
+    reason: '',
   });
   const [students, setStudents] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
@@ -139,34 +140,13 @@ const ExcuseApplicationContent = () => {
 
   const handleSubmitExcuse = async () => {
     try {
-      let excuse_image_url = null;
-      
-      // Upload image if provided
-      if (formData.excuse_image) {
-        const fileExt = formData.excuse_image.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-        const filePath = `excuse-letters/${fileName}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('excuse-letters')
-          .upload(filePath, formData.excuse_image);
-          
-        if (uploadError) throw uploadError;
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('excuse-letters')
-          .getPublicUrl(filePath);
-          
-        excuse_image_url = publicUrl;
-      }
-
       const { error } = await supabase
         .from('excuse_applications')
         .insert([{
           student_id: parseInt(formData.student_id),
           session_id: formData.session_id ? parseInt(formData.session_id) : null,
           absence_date: formData.absence_date,
-          excuse_image_url: excuse_image_url,
+          reason: formData.reason,
           documentation_url: formData.documentation_url,
           status: 'pending'
         }]);
@@ -182,6 +162,7 @@ const ExcuseApplicationContent = () => {
       setFormData({
         student_id: '',
         absence_date: '',
+        reason: '',
       });
       fetchExcuses();
     } catch (error) {
@@ -252,9 +233,8 @@ const ExcuseApplicationContent = () => {
 
   const columns: ColumnDef<ExcuseApplication>[] = [
     {
-      accessorKey: "studentName",
+      accessorKey: "student.firstname",
       header: "Student",
-      accessorFn: (row) => `${row.student?.firstname || ''} ${row.student?.surname || ''}`.trim(),
       cell: ({ row }) => {
         const student = row.original.student;
         return (
@@ -277,25 +257,13 @@ const ExcuseApplicationContent = () => {
       },
     },
     {
-      accessorKey: "excuse_image_url",
-      header: "Excuse Letter",
+      accessorKey: "reason",
+      header: "Reason",
       cell: ({ row }) => {
-        const imageUrl = row.original.excuse_image_url;
+        const reason = row.getValue("reason") as string;
         return (
-          <div className="flex items-center gap-2">
-            {imageUrl ? (
-              <div className="flex items-center gap-2">
-                <img 
-                  src={imageUrl} 
-                  alt="Excuse letter" 
-                  className="w-8 h-8 rounded object-cover cursor-pointer"
-                  onClick={() => window.open(imageUrl, '_blank')}
-                />
-                <span className="text-green-600 text-sm">Uploaded</span>
-              </div>
-            ) : (
-              <span className="text-gray-400 text-sm">No image</span>
-            )}
+          <div className="max-w-xs truncate" title={reason}>
+            {reason}
           </div>
         );
       },
@@ -383,7 +351,7 @@ const ExcuseApplicationContent = () => {
             <DataTable
               columns={columns}
               data={excuses}
-              searchKey="studentName"
+              searchKey="student.firstname"
               filterOptions={filterOptions}
             />
           )}
@@ -449,22 +417,13 @@ const ExcuseApplicationContent = () => {
             </div>
 
             <div>
-              <Label htmlFor="excuse-image">Upload Handwritten Excuse Letter</Label>
-              <Input
-                id="excuse-image"
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setFormData(prev => ({ ...prev, excuse_image: file }));
-                  }
-                }}
-                className="cursor-pointer"
+              <Label htmlFor="reason">Reason</Label>
+              <Textarea
+                id="reason"
+                value={formData.reason}
+                onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
+                placeholder="Explain the reason for absence..."
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Please upload a clear photo of your handwritten excuse letter
-              </p>
             </div>
 
             <div>
@@ -483,7 +442,7 @@ const ExcuseApplicationContent = () => {
             </Button>
             <Button 
               onClick={handleSubmitExcuse}
-              disabled={!formData.student_id || !formData.absence_date || !formData.excuse_image}
+              disabled={!formData.student_id || !formData.absence_date || !formData.reason}
             >
               Submit Application
             </Button>
@@ -525,19 +484,8 @@ const ExcuseApplicationContent = () => {
               </div>
 
               <div>
-                <Label className="text-sm font-medium">Excuse Letter</Label>
-                {selectedExcuse.excuse_image_url ? (
-                  <div className="mt-2">
-                    <img 
-                      src={selectedExcuse.excuse_image_url} 
-                      alt="Excuse letter" 
-                      className="max-w-full h-auto rounded border cursor-pointer"
-                      onClick={() => window.open(selectedExcuse.excuse_image_url, '_blank')}
-                    />
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-400">No excuse letter uploaded</p>
-                )}
+                <Label className="text-sm font-medium">Reason</Label>
+                <p className="text-sm whitespace-pre-wrap">{selectedExcuse.reason}</p>
               </div>
 
               {selectedExcuse.documentation_url && (

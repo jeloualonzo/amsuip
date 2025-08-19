@@ -633,9 +633,9 @@ const Students = () => {
           </div>
         </div>
         
-        {/* Search, Filter, and Students Section */}
-        <div className="bg-white rounded-lg shadow-sm p-3">
-          <div className="flex flex-col sm:flex-row gap-2 mb-3">
+        {/* Search and Filter Section */}
+        <div className="bg-white rounded-lg shadow-sm p-3 mb-4">
+          <div className="flex flex-col sm:flex-row gap-2 mb-2">
             <div className="flex-1 relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
               {isSearching && (
@@ -703,7 +703,7 @@ const Students = () => {
             </div>
           </div>
           
-          <div className="text-sm text-gray-500 flex items-center justify-between mb-3 pb-3 border-b border-gray-200">
+          <div className="text-sm text-gray-500 flex items-center justify-between">
             <span>
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -729,21 +729,24 @@ const Students = () => {
                 </>
               )}
             </span>
+            
+            
           </div>
+        </div>
 
-          {/* Students List Header */}
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-education-navy flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              <span className="text-sm">
-                Students {pagination.currentPage > 1 && `(Page ${pagination.currentPage})`}
-              </span>
-            </h3>
-          </div>
+        {/* Students View */}
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-base font-semibold text-education-navy flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            <span className="text-sm">
+              Students {pagination.currentPage > 1 && `(Page ${pagination.currentPage})`}
+            </span>
+          </h3>
+        </div>
         
-          {viewMode === 'table' ? (
-            /* Table View */
-            <div className="rounded-lg border border-gray-200 overflow-hidden">
+        {viewMode === 'table' ? (
+          /* Table View */
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr className="text-xs text-gray-500">
@@ -979,7 +982,6 @@ const Students = () => {
             )}
           </>
         )}
-        </div>
       </div>
 
       {/* Upload Signature Modal */}

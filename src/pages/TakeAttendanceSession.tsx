@@ -26,7 +26,6 @@ const TakeAttendanceSession = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
   const [cameraActive, setCameraActive] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [attendanceStatus, setAttendanceStatus] = useState<'success' | 'error' | null>(null);
@@ -48,7 +47,6 @@ const TakeAttendanceSession = () => {
     // Fetch session details when component mounts
     const fetchSession = async () => {
       try {
-        setLoading(true);
         const { data, error } = await supabase
           .from('sessions')
           .select('*')
@@ -60,15 +58,11 @@ const TakeAttendanceSession = () => {
       } catch (err) {
         console.error('Error fetching session:', err);
         setError('Failed to load session details');
-      } finally {
-        setLoading(false);
       }
     };
 
     if (sessionId) {
       fetchSession();
-    } else {
-      setLoading(false);
     }
 
     // Clean up camera stream when component unmounts
@@ -373,21 +367,6 @@ const TakeAttendanceSession = () => {
       }
     }
   };
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="p-8">
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
-            <h2 className="text-xl font-medium text-education-navy">
-              Loading session details...
-            </h2>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
 
   if (error || !session) {
     return (

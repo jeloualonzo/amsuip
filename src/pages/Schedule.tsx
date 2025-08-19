@@ -1315,7 +1315,7 @@ const Schedule = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="px-3 py-2 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-200"
+                          className="px-3 py-2 hover:bg-blue-50 hover:border-blue-200 transition-colors"
                           onClick={() => navigate(`/sessions/${session.id}/students`)}
                         >
                           <Users className="h-4 w-4" />
@@ -1323,7 +1323,7 @@ const Schedule = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="px-3 py-2 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all duration-200"
+                          className="px-3 py-2 hover:bg-green-50 hover:border-green-200 transition-colors"
                           onClick={() => handleEditSession(session)}
                         >
                           <SquarePen className="h-4 w-4" />
