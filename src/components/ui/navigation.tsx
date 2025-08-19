@@ -43,8 +43,8 @@ const navItems = [
     href: "/excuse-application",
     isActive: (path: string) => path === '/excuse-application'
   },
-  { icon: UserCog, label: "Accounts", href: "/accounts" },
   { icon: CalendarRange, label: "Academic Year", href: "/academic-year" },
+  { icon: UserCog, label: "Accounts", href: "/accounts" },
 ];
 
 // Desktop Sidebar Navigation

@@ -476,8 +476,8 @@ const AttendanceForm = ({ onSuccess, onSubmit, initialData }: AttendanceFormProp
   };
 
   return (
-    <div className="w-full max-w-[53.5rem] mx-auto px-4 py-2">
-      <div className="border-b border-border/30 pb-2 flex justify-between items-center">
+    <div className="w-full max-w-[53.5rem] mx-auto px-4 py-1">
+      <div className="border-b border-border/30 pb-1 flex justify-between items-center">
         <h2 className="flex items-center gap-2 text-education-navy text-xl font-semibold">
           <CalendarIcon className="w-5 h-5 text-education-blue" />
           {initialData?.id ? 'Edit Session' : 'Create New Session'}
@@ -485,7 +485,7 @@ const AttendanceForm = ({ onSuccess, onSubmit, initialData }: AttendanceFormProp
       </div>
       
       {/* Type Selection */}
-      <div className="pt-4 pb-2">
+      <div className="pt-2 pb-2">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             { type: "class" as AttendanceType, label: "Class Session", description: "Regular classroom attendance", bg: "bg-gradient-primary/5", hoverBg: "hover:bg-gradient-primary/10" },
@@ -671,39 +671,48 @@ const AttendanceForm = ({ onSuccess, onSubmit, initialData }: AttendanceFormProp
               {/* Date */}
               <div className="space-y-2">
                 <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({...formData, date: e.target.value})}
-                  className="w-full"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="date"
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({...formData, date: e.target.value})}
+                    className="w-full pr-10"
+                    required
+                  />
+                  <CalendarIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                </div>
               </div>
 
               {/* Time In */}
               <div className="space-y-2">
                 <Label htmlFor="timeIn">Start Time</Label>
-                <Input
-                  id="timeIn"
-                  type="time"
-                  value={formData.timeIn}
-                  onChange={(e) => setFormData({...formData, timeIn: e.target.value})}
-                  className="w-full"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="timeIn"
+                    type="time"
+                    value={formData.timeIn}
+                    onChange={(e) => setFormData({...formData, timeIn: e.target.value})}
+                    className="w-full pr-10"
+                    required
+                  />
+                  <Clock className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                </div>
               </div>
 
               {/* Time Out */}
               <div className="space-y-2">
                 <Label htmlFor="timeOut">End Time</Label>
-                <Input
-                  id="timeOut"
-                  type="time"
-                  value={formData.timeOut}
-                  onChange={(e) => setFormData({...formData, timeOut: e.target.value})}
-                  className="w-full"
-                />
+                <div className="relative">
+                  <Input
+                    id="timeOut"
+                    type="time"
+                    value={formData.timeOut}
+                    onChange={(e) => setFormData({...formData, timeOut: e.target.value})}
+                    className="w-full pr-10"
+                  />
+                  <Clock className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                </div>
               </div>
 
               {/* Description */}

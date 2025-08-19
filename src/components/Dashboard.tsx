@@ -85,7 +85,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex-1 space-y-6 p-3 md:p-6 pt-4">
+    <div className="flex-1 space-y-4 p-3">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight text-education-navy">{getDashboardTitle()}</h2>
@@ -222,7 +222,7 @@ const Dashboard = () => {
           <CardContent>
             <div className="space-y-2">
               <Button 
-                className="w-full justify-start h-9 hover:bg-primary/10 transition-colors"
+                className="w-full justify-start h-9 hover:bg-muted hover:text-foreground transition-colors"
                 variant="outline"
                 onClick={() => navigate('/take-attendance')}
               >
@@ -231,7 +231,7 @@ const Dashboard = () => {
               </Button>
               
               <Button 
-                className="w-full justify-start h-9 hover:bg-primary/10 transition-colors"
+                className="w-full justify-start h-9 hover:bg-muted hover:text-foreground transition-colors"
                 variant="outline"
                 onClick={() => navigate('/students')}
               >
@@ -240,7 +240,7 @@ const Dashboard = () => {
               </Button>
               
               <Button 
-                className="w-full justify-start h-9 hover:bg-primary/10 transition-colors"
+                className="w-full justify-start h-9 hover:bg-muted hover:text-foreground transition-colors"
                 variant="outline"
                 onClick={() => navigate('/schedule')}
               >
@@ -249,7 +249,7 @@ const Dashboard = () => {
               </Button>
               
               <Button 
-                className="w-full justify-start h-9 hover:bg-primary/10 transition-colors"
+                className="w-full justify-start h-9 hover:bg-muted hover:text-foreground transition-colors"
                 variant="outline"
                 onClick={() => navigate('/records')}
               >

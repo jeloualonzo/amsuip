@@ -5,15 +5,18 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { FileText, Clock, AlertCircle, CheckCircle2, Plus, Search, Filter, Eye, Check, X } from "lucide-react";
+import { FileText, Clock, AlertCircle, CheckCircle2, Plus, Search, Filter, Eye, Check, X, ChevronsUpDown, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import Layout from "@/components/Layout";
+import { cn } from "@/lib/utils";
 
 type ExcuseStatus = 'pending' | 'approved' | 'rejected';
 
@@ -66,6 +69,8 @@ const ExcuseApplicationContent = () => {
   });
   const [students, setStudents] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
+  const [openStudentSelect, setOpenStudentSelect] = useState(false);
+  const [openSessionSelect, setOpenSessionSelect] = useState(false);
 
   useEffect(() => {
     fetchExcuses();
@@ -350,7 +355,7 @@ const ExcuseApplicationContent = () => {
   ];
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+    <div className="flex-1 space-y-4 p-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Excuse Applications</h1>
@@ -358,13 +363,7 @@ const ExcuseApplicationContent = () => {
             Review and manage student excuse applications for absences
           </p>
         </div>
-        <Button 
-          className="bg-gradient-primary shadow-glow h-9"
-          onClick={() => setIsFormOpen(true)}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          New Application
-        </Button>
+
       </div>
 
       <Card>
@@ -402,40 +401,98 @@ const ExcuseApplicationContent = () => {
           <div className="space-y-4">
             <div>
               <Label htmlFor="student">Student</Label>
-              <Select
-                value={formData.student_id}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, student_id: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select student" />
-                </SelectTrigger>
-                <SelectContent>
-                  {students.map((student) => (
-                    <SelectItem key={student.id} value={student.id.toString()}>
-                      {student.firstname} {student.surname} ({student.student_id})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={openStudentSelect} onOpenChange={setOpenStudentSelect}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openStudentSelect}
+                    className="w-full justify-between"
+                  >
+                    {formData.student_id
+                      ? students.find((student) => student.id.toString() === formData.student_id)?.firstname + ' ' + students.find((student) => student.id.toString() === formData.student_id)?.surname + ' (' + students.find((student) => student.id.toString() === formData.student_id)?.student_id + ')'
+                      : "Select student..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search students..." />
+                    <CommandEmpty>No student found.</CommandEmpty>
+                    <CommandGroup>
+                      {students.map((student) => (
+                        <CommandItem
+                          key={student.id}
+                          onSelect={() => {
+                            setFormData(prev => ({ ...prev, student_id: student.id.toString() }));
+                            setOpenStudentSelect(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              formData.student_id === student.id.toString() ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {student.firstname} {student.surname} ({student.student_id})
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>
-              <Label htmlFor="session">Session (Optional)</Label>
-              <Select
-                value={formData.session_id || ''}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, session_id: value || undefined }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select session (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sessions.map((session) => (
-                    <SelectItem key={session.id} value={session.id.toString()}>
-                      {session.title} - {format(new Date(session.date), 'MMM d, yyyy')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="session">Session *</Label>
+              <Popover open={openSessionSelect} onOpenChange={setOpenSessionSelect}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openSessionSelect}
+                    className="w-full justify-between"
+                  >
+                    {formData.session_id
+                      ? sessions.find((session) => session.id.toString() === formData.session_id)?.title + ' - ' + format(new Date(sessions.find((session) => session.id.toString() === formData.session_id)?.date), 'MMM d, yyyy')
+                      : "Select session..."}
+                    <div className="flex items-center gap-1">
+                      <CalendarIcon className="h-4 w-4 shrink-0 opacity-50" />
+                      <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                    </div>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search sessions or dates..." />
+                    <CommandEmpty>No session found.</CommandEmpty>
+                    <CommandGroup>
+                      {sessions.map((session) => (
+                        <CommandItem
+                          key={session.id}
+                          onSelect={() => {
+                            setFormData(prev => ({ ...prev, session_id: session.id.toString() }));
+                            setOpenSessionSelect(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              formData.session_id === session.id.toString() ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <div className="flex flex-col">
+                            <span>{session.title}</span>
+                            <span className="text-sm text-muted-foreground">
+                              {format(new Date(session.date), 'EEEE, MMM d, yyyy')}
+                            </span>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>
@@ -467,15 +524,7 @@ const ExcuseApplicationContent = () => {
               </p>
             </div>
 
-            <div>
-              <Label htmlFor="documentation">Documentation URL (Optional)</Label>
-              <Input
-                id="documentation"
-                value={formData.documentation_url || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, documentation_url: e.target.value }))}
-                placeholder="Link to supporting documents..."
-              />
-            </div>
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsFormOpen(false)}>
@@ -483,7 +532,7 @@ const ExcuseApplicationContent = () => {
             </Button>
             <Button 
               onClick={handleSubmitExcuse}
-              disabled={!formData.student_id || !formData.absence_date || !formData.excuse_image}
+              disabled={!formData.student_id || !formData.session_id || !formData.absence_date || !formData.excuse_image}
             >
               Submit Application
             </Button>
