@@ -182,7 +182,6 @@ export type Database = {
           created_at: string
           documentation_url: string | null
           id: string
-          reason: string
           review_notes: string | null
           reviewed_at: string | null
           reviewed_by: string | null
@@ -196,7 +195,6 @@ export type Database = {
           created_at?: string
           documentation_url?: string | null
           id?: string
-          reason: string
           review_notes?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -210,7 +208,6 @@ export type Database = {
           created_at?: string
           documentation_url?: string | null
           id?: string
-          reason?: string
           review_notes?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
