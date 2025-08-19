@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import StudentImport from "@/components/StudentImport";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
+import { aiService } from "@/lib/aiService";
 import { debounce } from "lodash";
 
 interface Student {
@@ -459,6 +460,21 @@ const Students = () => {
       }
       
       toast.success('Files uploaded successfully');
+      
+      // Trigger AI training in the background (fire-and-forget)
+      try {
+        console.log(`Starting AI training for student ${studentId}`);
+        const trainingResult = await aiService.trainStudent(studentId);
+        if (trainingResult.success) {
+          toast.success('AI signature training started successfully');
+        } else {
+          console.warn('AI training failed:', trainingResult.error);
+          toast.warning('Signature uploaded but AI training failed. Manual training may be needed.');
+        }
+      } catch (error) {
+        console.error('AI training error:', error);
+        // Don't show error toast as the main upload was successful
+      }
       
       // Refresh current page
       fetchStudents(searchTerm, filters.program, filters.year, pagination.currentPage, pagination.pageSize);

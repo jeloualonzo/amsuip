@@ -7,6 +7,8 @@ import Layout from "@/components/Layout";
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import { aiService } from '@/lib/aiService';
+import { toast } from 'sonner';
 
 type Session = {
   id: number;
@@ -40,6 +42,18 @@ const TakeAttendanceSession = () => {
     noMatch: 0,
     potentialForgery: 0,
   });
+  const [verificationResult, setVerificationResult] = useState<{
+    match: boolean;
+    student?: {
+      id: number;
+      student_id: string;
+      firstname: string;
+      surname: string;
+    };
+    score: number;
+    message: string;
+  } | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const permissionGranted = useRef(false);
@@ -356,7 +370,7 @@ const TakeAttendanceSession = () => {
     permissionGranted.current = false;
   };
 
-  const handleCaptureSignature = () => {
+  const handleCaptureSignature = async () => {
     if (videoRef.current) {
       const canvas = document.createElement('canvas');
       canvas.width = videoRef.current.videoWidth;
@@ -370,8 +384,89 @@ const TakeAttendanceSession = () => {
         
         // Stop the camera after capturing
         handleStopCamera();
+        
+        // Verify signature with AI
+        await verifySignatureWithAI(imageUrl);
       }
     }
+  };
+
+  const verifySignatureWithAI = async (imageDataUrl: string) => {
+    setIsVerifying(true);
+    setVerificationResult(null);
+    setAttendanceStatus(null);
+    
+    try {
+      console.log('Starting AI signature verification...');
+      
+      // Call AI service for verification
+      const result = await aiService.verifySignatureFromDataURL(
+        imageDataUrl,
+        sessionId ? parseInt(sessionId) : undefined
+      );
+      
+      console.log('AI verification result:', result);
+      
+      // Update stats
+      setStats(prev => ({
+        ...prev,
+        totalScanned: prev.totalScanned + 1,
+        matched: prev.matched + (result.match ? 1 : 0),
+        noMatch: prev.noMatch + (!result.match ? 1 : 0),
+        potentialForgery: prev.potentialForgery + (result.decision === 'error' ? 1 : 0),
+      }));
+      
+      if (result.success) {
+        setVerificationResult({
+          match: result.match,
+          student: result.predicted_student,
+          score: result.score,
+          message: result.message,
+        });
+        
+        if (result.match && result.predicted_student) {
+          setAttendanceStatus('success');
+          toast.success(`Signature matched: ${result.predicted_student.firstname} ${result.predicted_student.surname} (${result.predicted_student.student_id})`);
+        } else {
+          setAttendanceStatus('error');
+          toast.warning('Signature not recognized. Please try again or mark attendance manually.');
+        }
+      } else {
+        setVerificationResult({
+          match: false,
+          score: 0,
+          message: result.error || 'Verification failed',
+        });
+        setAttendanceStatus('error');
+        toast.error(result.error || 'Signature verification failed');
+      }
+      
+    } catch (error) {
+      console.error('Error during signature verification:', error);
+      setVerificationResult({
+        match: false,
+        score: 0,
+        message: 'Verification error occurred',
+      });
+      setAttendanceStatus('error');
+      toast.error('Failed to verify signature. Please try again.');
+      
+      // Update stats for error
+      setStats(prev => ({
+        ...prev,
+        totalScanned: prev.totalScanned + 1,
+        potentialForgery: prev.potentialForgery + 1,
+      }));
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleRetakeSignature = () => {
+    setCapturedImage(null);
+    setVerificationResult(null);
+    setAttendanceStatus(null);
+    // Don't restart camera automatically, let user click to start
   };
 
   if (loading) {
@@ -493,52 +588,127 @@ const TakeAttendanceSession = () => {
                     </div>
                   )}
 
+                  {/* Verification Results */}
+                  {capturedImage && verificationResult && !isVerifying && (
+                    <div className={cn(
+                      "mb-4 p-4 rounded-lg border",
+                      verificationResult.match 
+                        ? "bg-green-50 border-green-200 text-green-800"
+                        : "bg-red-50 border-red-200 text-red-800"
+                    )}>
+                      <div className="flex items-center mb-2">
+                        {verificationResult.match ? (
+                          <CheckCircle className="w-5 h-5 mr-2" />
+                        ) : (
+                          <XCircle className="w-5 h-5 mr-2" />
+                        )}
+                        <span className="font-medium">
+                          {verificationResult.match ? 'Match Found!' : 'No Match'}
+                        </span>
+                      </div>
+                      
+                      {verificationResult.student && (
+                        <div className="text-sm mb-2">
+                          <strong>{verificationResult.student.firstname} {verificationResult.student.surname}</strong>
+                          <br />
+                          Student ID: {verificationResult.student.student_id}
+                        </div>
+                      )}
+                      
+                      <div className="text-sm">
+                        Confidence: {Math.round(verificationResult.score * 100)}%
+                      </div>
+                      
+                      {verificationResult.message && (
+                        <div className="text-xs mt-2 opacity-80">
+                          {verificationResult.message}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Verification Loading */}
+                  {isVerifying && (
+                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
+                      <div className="flex items-center">
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        <span className="font-medium">Verifying signature...</span>
+                      </div>
+                      <div className="text-sm mt-1 opacity-80">
+                        Please wait while we process your signature
+                      </div>
+                    </div>
+                  )}
+
                   {/* Button Group */}
                   <div className="flex flex-col space-y-2">
-                    {!cameraActive ? (
-                  <Button 
-                    onClick={handleStartCamera}
-                    disabled={isRequestingCamera}
-                    className="w-full bg-teal-300 text-white hover:bg-teal-200 hover:text-teal-900 py-2 h-auto text-base transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    size="lg"
-                  >
-                    {isRequestingCamera ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        <span>Requesting Access...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-5 h-5 mr-2 text-white" />
-                        <span className="text-white">Start Camera</span>
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <div className="flex gap-2 w-full">
-                    <Button 
-                      onClick={handleCaptureSignature}
-                      className="flex-1 bg-teal-300 text-white hover:bg-teal-200 hover:text-teal-900 py-2 h-auto text-base transition-all duration-200"
-                      size="lg"
-                    >
-                      <Camera className="w-5 h-5 mr-2 text-white" />
-                      <span className="text-white">Capture Signature</span>
-                    </Button>
-                    <Button 
-                      onClick={handleStopCamera}
-                      variant="outline"
-                      className="w-24 py-2 h-auto text-base hover:bg-transparent hover:text-inherit active:bg-transparent focus:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                      size="lg"
-                    >
-                      <div className="relative w-5 h-5 mr-2">
-                        <Square className="w-4 h-4 text-red-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                        <div className="w-3 h-3 bg-red-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    {!cameraActive && !capturedImage ? (
+                      <Button 
+                        onClick={handleStartCamera}
+                        disabled={isRequestingCamera}
+                        className="w-full bg-teal-300 text-white hover:bg-teal-200 hover:text-teal-900 py-2 h-auto text-base transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        size="lg"
+                      >
+                        {isRequestingCamera ? (
+                          <>
+                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                            <span>Requesting Access...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-5 h-5 mr-2 text-white" />
+                            <span className="text-white">Start Camera</span>
+                          </>
+                        )}
+                      </Button>
+                    ) : cameraActive ? (
+                      <div className="flex gap-2 w-full">
+                        <Button 
+                          onClick={handleCaptureSignature}
+                          disabled={isVerifying}
+                          className="flex-1 bg-teal-300 text-white hover:bg-teal-200 hover:text-teal-900 py-2 h-auto text-base transition-all duration-200 disabled:opacity-50"
+                          size="lg"
+                        >
+                          <Camera className="w-5 h-5 mr-2 text-white" />
+                          <span className="text-white">Capture Signature</span>
+                        </Button>
+                        <Button 
+                          onClick={handleStopCamera}
+                          variant="outline"
+                          className="w-24 py-2 h-auto text-base hover:bg-transparent hover:text-inherit active:bg-transparent focus:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                          size="lg"
+                        >
+                          <div className="relative w-5 h-5 mr-2">
+                            <Square className="w-4 h-4 text-red-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                            <div className="w-3 h-3 bg-red-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                          </div>
+                          Stop
+                        </Button>
                       </div>
-                      Stop
-                    </Button>
+                    ) : capturedImage ? (
+                      <div className="flex gap-2 w-full">
+                        <Button 
+                          onClick={handleRetakeSignature}
+                          variant="outline"
+                          className="flex-1 py-2 h-auto text-base"
+                          size="lg"
+                          disabled={isVerifying}
+                        >
+                          <RefreshCw className="w-5 h-5 mr-2" />
+                          Retake
+                        </Button>
+                        <Button 
+                          onClick={handleStartCamera}
+                          className="flex-1 bg-teal-300 text-white hover:bg-teal-200 hover:text-teal-900 py-2 h-auto text-base transition-all duration-200"
+                          size="lg"
+                          disabled={isVerifying}
+                        >
+                          <Camera className="w-5 h-5 mr-2 text-white" />
+                          <span className="text-white">New Capture</span>
+                        </Button>
+                      </div>
+                    ) : null}
                   </div>
-                )}
-              </div>
             </CardContent>
           </Card>
 

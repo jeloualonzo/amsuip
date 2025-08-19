@@ -1,0 +1,1 @@
+{"version":3,"file":"train.d.ts","sourceRoot":"","sources":["../../src/routes/train.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,cAAc,EAAE,YAAY,EAAE,MAAM,SAAS,CAAC;AAOvD,UAAU,WAAW;IACnB,SAAS,EAAE,MAAM,CAAC;CACnB;AAED,wBAAsB,YAAY,CAChC,OAAO,EAAE,cAAc,CAAC;IAAE,MAAM,EAAE,WAAW,CAAA;CAAE,CAAC,EAChD,KAAK,EAAE,YAAY,GAClB,OAAO,CAAC,IAAI,CAAC,CA0Nf"}
