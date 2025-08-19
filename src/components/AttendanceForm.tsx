@@ -20,9 +20,6 @@ export interface SessionData {
   date: string;
   timeIn: string;
   timeOut: string;
-  description: string;
-  venue: string;
-  capacity: string;
   attendanceType: AttendanceType;
 }
 
@@ -42,9 +39,6 @@ const AttendanceForm = ({ onSuccess, onSubmit, initialData }: AttendanceFormProp
     date: initialData?.date || "",
     timeIn: initialData?.timeIn || "",
     timeOut: initialData?.timeOut || "",
-    description: initialData?.description || "",
-    venue: initialData?.venue || "",
-    capacity: initialData?.capacity || ""
   });
   
   // State for dropdown options
@@ -400,9 +394,6 @@ const AttendanceForm = ({ onSuccess, onSubmit, initialData }: AttendanceFormProp
         date: initialData.date || "",
         timeIn: initialData.timeIn || "",
         timeOut: initialData.timeOut || "",
-        description: initialData.description || "",
-        venue: initialData.venue || "",
-        capacity: initialData.capacity || ""
       });
       if (initialData.attendanceType) {
         setAttendanceType(initialData.attendanceType);
@@ -442,9 +433,6 @@ const AttendanceForm = ({ onSuccess, onSubmit, initialData }: AttendanceFormProp
           date: "",
           timeIn: "",
           timeOut: "",
-          description: "",
-          venue: "",
-          capacity: ""
         });
         setAttendanceType("class");
       }
@@ -485,7 +473,7 @@ const AttendanceForm = ({ onSuccess, onSubmit, initialData }: AttendanceFormProp
       </div>
       
       {/* Type Selection */}
-      <div className="pt-2 pb-2">
+      <div className="pt-1 pb-2">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             { type: "class" as AttendanceType, label: "Class Session", description: "Regular classroom attendance", bg: "bg-gradient-primary/5", hoverBg: "hover:bg-gradient-primary/10" },
@@ -715,20 +703,6 @@ const AttendanceForm = ({ onSuccess, onSubmit, initialData }: AttendanceFormProp
                 </div>
               </div>
 
-              {/* Description */}
-              <div className="space-y-2 col-span-2">
-                <Label htmlFor="description">
-                  {attendanceType === "class" ? "Course Description" : 
-                   attendanceType === "event" ? "Event Description" : "Activity Description"}
-                </Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder={`Brief description of the ${attendanceType}...`}
-                  className="w-full min-h-[80px]"
-                />
-              </div>
             </div>
 
             {/* Submit Button */}
