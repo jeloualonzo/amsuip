@@ -101,6 +101,7 @@ const ExcuseApplicationContent = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      console.log('Fetched excuses data:', data);
       setExcuses(data || []);
     } catch (error) {
       console.error('Error fetching excuses:', error);
