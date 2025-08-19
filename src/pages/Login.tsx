@@ -79,14 +79,14 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <Tabs defaultValue="signin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4 mx-4">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="signin">
+          <TabsContent value="signin" className="px-0">
             <form onSubmit={handleSignIn}>
-              <CardContent className="space-y-4 mx-4">
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signin-email">Email</Label>
                   <Input
@@ -133,7 +133,7 @@ export default function Login() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="mx-4">
+              <CardFooter>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
@@ -141,9 +141,9 @@ export default function Login() {
             </form>
           </TabsContent>
 
-          <TabsContent value="signup">
+          <TabsContent value="signup" className="px-0">
             <form onSubmit={handleSignUp}>
-              <CardContent className="space-y-4 mx-4">
+              <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-2">
                     <Label htmlFor="first-name">First Name</Label>
@@ -222,7 +222,7 @@ export default function Login() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="mx-4">
+              <CardFooter>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Create Account"}
                 </Button>

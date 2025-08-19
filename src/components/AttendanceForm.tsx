@@ -117,16 +117,22 @@ const AttendanceForm = ({ onSuccess, onSubmit, initialData }: AttendanceFormProp
   const loadStudentSections = useCallback(async (program: string, year: string) => {
     // Skip if no program or year is selected, or if "All Programs" or "All Year Levels" is selected
     if (!program || !year || program === 'All Programs' || year === 'All Year Levels') {
-      // Reset sections when "All" is selected
-      setStudentOptions(prev => ({
-        ...prev,
-        sections: {
-          ...prev.sections,
-          [`${program}|${year}`]: []
+      // Reset sections when "All" is selected but don't trigger unnecessary re-renders
+      const key = `${program}|${year}`;
+      setStudentOptions(prev => {
+        if (JSON.stringify(prev.sections[key]) === JSON.stringify([])) {
+          return prev; // No change needed
         }
-      }));
+        return {
+          ...prev,
+          sections: {
+            ...prev.sections,
+            [key]: []
+          }
+        };
+      });
       
-      // Reset section in form data
+      // Reset section in form data only if necessary
       if (formData.section) {
         setFormData(prev => ({
           ...prev,

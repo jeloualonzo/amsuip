@@ -318,12 +318,18 @@ const Schedule = () => {
           query = query.eq('program', program);
         }
         if (year && !year.toLowerCase().includes('all')) {
-          // Convert year format if needed (e.g., '1st Year' to '1st')
+          // Convert year format for consistent matching
           let yearValue = year;
-          if (yearValue.endsWith(' Year')) {
-            yearValue = yearValue.replace(' Year', '');
+          // Handle both 'All Years' and 'All Year Levels' variants
+          if (yearValue === 'All Years' || yearValue === 'All Year Levels') {
+            // Skip the filter for 'All' selections
+          } else {
+            // Convert '1st Year' to '1st' for database query
+            if (yearValue.endsWith(' Year')) {
+              yearValue = yearValue.replace(' Year', '');
+            }
+            query = query.eq('year', yearValue);
           }
-          query = query.eq('year', yearValue);
         }
         if (section && !section.toLowerCase().includes('all')) {
           query = query.eq('section', section);
@@ -476,7 +482,17 @@ const Schedule = () => {
           query = query.eq('program', program);
         }
         if (year && !year.toLowerCase().includes('all')) {
-          query = query.eq('year', year);
+          // Convert year format for consistent matching
+          let yearValue = year;
+          if (yearValue === 'All Years' || yearValue === 'All Year Levels') {
+            // Skip the filter for 'All' selections
+          } else {
+            // Convert '1st Year' to '1st' for database query
+            if (yearValue.endsWith(' Year')) {
+              yearValue = yearValue.replace(' Year', '');
+            }
+            query = query.eq('year', yearValue);
+          }
         }
         if (section && !section.toLowerCase().includes('all')) {
           query = query.eq('section', section);
