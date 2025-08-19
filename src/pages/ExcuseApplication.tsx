@@ -13,7 +13,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { FileText, Clock, AlertCircle, CheckCircle2, Plus, Search, Filter, Eye, Check, X, ChevronsUpDown, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import Layout from "@/components/Layout";
 import { cn } from "@/lib/utils";
@@ -65,7 +65,7 @@ const ExcuseApplicationContent = () => {
   const [selectedExcuse, setSelectedExcuse] = useState<ExcuseApplication | null>(null);
   const [formData, setFormData] = useState<ExcuseFormData>({
     student_id: '',
-    absence_date: '',
+    absence_date: '', // Keep for type compatibility but won't be used
   });
   const [students, setStudents] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
@@ -170,7 +170,7 @@ const ExcuseApplicationContent = () => {
         .insert([{
           student_id: parseInt(formData.student_id),
           session_id: formData.session_id ? parseInt(formData.session_id) : null,
-          absence_date: formData.absence_date,
+          absence_date: new Date().toISOString().split('T')[0], // Use current date
           excuse_image_url: excuse_image_url,
           documentation_url: formData.documentation_url,
           status: 'pending'
@@ -355,7 +355,7 @@ const ExcuseApplicationContent = () => {
   ];
 
   return (
-    <div className="flex-1 space-y-4 p-3">
+    <div className="flex-1 space-y-4 px-4 py-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Excuse Applications</h1>
@@ -501,15 +501,6 @@ const ExcuseApplicationContent = () => {
               </Popover>
             </div>
 
-            <div>
-              <Label htmlFor="absence_date">Absence Date</Label>
-              <Input
-                id="absence_date"
-                type="date"
-                value={formData.absence_date}
-                onChange={(e) => setFormData(prev => ({ ...prev, absence_date: e.target.value }))}
-              />
-            </div>
 
             <div>
               <Label htmlFor="excuse-image">Upload Handwritten Excuse Letter</Label>
@@ -538,7 +529,7 @@ const ExcuseApplicationContent = () => {
             </Button>
             <Button 
               onClick={handleSubmitExcuse}
-              disabled={!formData.student_id || !formData.session_id || !formData.absence_date || !formData.excuse_image}
+              disabled={!formData.student_id || !formData.session_id || !formData.excuse_image}
             >
               Submit Application
             </Button>
