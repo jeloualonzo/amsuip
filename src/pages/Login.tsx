@@ -79,14 +79,14 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <Tabs defaultValue="signin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsList className="grid w-full grid-cols-2 mb-4 mx-4">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
           
           <TabsContent value="signin">
             <form onSubmit={handleSignIn}>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 mx-4">
                 <div className="space-y-2">
                   <Label htmlFor="signin-email">Email</Label>
                   <Input
@@ -133,7 +133,7 @@ export default function Login() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="mx-4">
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
@@ -143,7 +143,7 @@ export default function Login() {
 
           <TabsContent value="signup">
             <form onSubmit={handleSignUp}>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 mx-4">
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-2">
                     <Label htmlFor="first-name">First Name</Label>
@@ -222,7 +222,7 @@ export default function Login() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="mx-4">
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Create Account"}
                 </Button>

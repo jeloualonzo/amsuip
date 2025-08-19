@@ -25,7 +25,7 @@ type ExcuseApplication = {
   student_id: number;
   session_id?: number;
   absence_date: string;
-  excuse_image_url?: string;
+  
   documentation_url?: string;
   status: ExcuseStatus;
   reviewed_by?: string;
@@ -171,8 +171,7 @@ const ExcuseApplicationContent = () => {
           student_id: parseInt(formData.student_id),
           session_id: formData.session_id ? parseInt(formData.session_id) : null,
           absence_date: new Date().toISOString().split('T')[0], // Use current date
-          excuse_image_url: excuse_image_url,
-          documentation_url: formData.documentation_url,
+          documentation_url: excuse_image_url || formData.documentation_url,
           status: 'pending'
         }]);
 
@@ -282,10 +281,10 @@ const ExcuseApplicationContent = () => {
       },
     },
     {
-      accessorKey: "excuse_image_url",
+      accessorKey: "documentation_url",
       header: "Excuse Letter",
       cell: ({ row }) => {
-        const imageUrl = row.original.excuse_image_url;
+        const imageUrl = row.original.documentation_url;
         return (
           <div className="flex items-center gap-2">
             {imageUrl ? (
@@ -572,13 +571,13 @@ const ExcuseApplicationContent = () => {
 
               <div>
                 <Label className="text-sm font-medium">Excuse Letter</Label>
-                {selectedExcuse.excuse_image_url ? (
+                {selectedExcuse.documentation_url ? (
                   <div className="mt-2">
                     <img 
-                      src={selectedExcuse.excuse_image_url} 
+                      src={selectedExcuse.documentation_url} 
                       alt="Excuse letter" 
                       className="max-w-full h-auto rounded border cursor-pointer"
-                      onClick={() => window.open(selectedExcuse.excuse_image_url, '_blank')}
+                      onClick={() => window.open(selectedExcuse.documentation_url, '_blank')}
                     />
                   </div>
                 ) : (

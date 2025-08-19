@@ -340,17 +340,11 @@ const AttendanceForm = ({ onSuccess, onSubmit, initialData }: AttendanceFormProp
     
     initializeData();
     
-    // Add a periodic check to verify programs (for debugging)
-    const programCheckInterval = setInterval(() => {
-      console.log('Current programs in state:', studentOptions.programs);
-    }, 30000); // Log every 30 seconds
-    
     return () => {
       isMounted = false;
-      clearInterval(programCheckInterval);
       console.log('Component unmounted, cleaning up...');
     };
-  }, [loadPrograms, loadYears, studentOptions.programs]);
+  }, [loadPrograms, loadYears]);
   
   // Load sections when program or year changes
   useEffect(() => {

@@ -50,11 +50,15 @@ const navItems = [
 // Desktop Sidebar Navigation
 const DesktopNavigation = () => {
   const location = useLocation();
+  const [showLogout, setShowLogout] = useState(false);
   
   return (
     <div className="hidden md:flex md:flex-col h-full">
       <div>
-        <div className="flex items-center gap-3 mb-8 group cursor-pointer">
+        <div 
+          className="flex items-center gap-3 mb-8 group cursor-pointer"
+          onClick={() => setShowLogout(!showLogout)}
+        >
           <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
             <GraduationCap className="w-6 h-6 text-primary-foreground" />
           </div>
@@ -62,12 +66,18 @@ const DesktopNavigation = () => {
             <h1 className="text-lg font-bold text-education-navy">AMSUIP</h1>
             <p className="text-sm text-muted-foreground">Admin Panel</p>
           </div>
-          <div className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors">
+          <div className={`w-5 h-5 text-muted-foreground group-hover:text-foreground transition-all duration-200 ${showLogout ? 'rotate-180' : ''}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m6 9 6 6 6-6"/>
             </svg>
           </div>
         </div>
+        
+        {showLogout && (
+          <div className="mb-4">
+            <UserProfile />
+          </div>
+        )}
 
         <div className="space-y-1.5">
           {navItems.map((item) => {

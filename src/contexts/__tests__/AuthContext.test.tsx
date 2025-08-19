@@ -1,5 +1,6 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
-import { AuthProvider, AuthContext } from '../AuthContext';
+import { AuthProvider } from '../AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import type { AuthResponse } from '@/types/auth';
 
@@ -31,18 +32,13 @@ jest.mock('@/lib/supabase', () => ({
 
 describe('AuthProvider', () => {
   const TestComponent = () => {
+    const { user, isAuthenticated, loading } = useAuth();
     return (
-      <AuthProvider>
-        <AuthContext.Consumer>
-          {({ user, isAuthenticated, loading }) => (
-            <div>
-              <div data-testid="user-email">{user?.email}</div>
-              <div data-testid="is-authenticated">{isAuthenticated ? 'true' : 'false'}</div>
-              <div data-testid="is-loading">{loading ? 'true' : 'false'}</div>
-            </div>
-          )}
-        </AuthContext.Consumer>
-      </AuthProvider>
+      <div>
+        <div data-testid="user-email">{user?.email}</div>
+        <div data-testid="is-authenticated">{isAuthenticated ? 'true' : 'false'}</div>
+        <div data-testid="is-loading">{loading ? 'true' : 'false'}</div>
+      </div>
     );
   };
 
@@ -79,14 +75,15 @@ describe('AuthProvider', () => {
 
     let signInFunction: (email: string, password: string) => Promise<AuthResponse>;
     
+    const TestSignInComponent = () => {
+      const { signIn } = useAuth();
+      signInFunction = signIn;
+      return null;
+    };
+    
     render(
       <AuthProvider>
-        <AuthContext.Consumer>
-          {({ signIn }) => {
-            signInFunction = signIn;
-            return null;
-          }}
-        </AuthContext.Consumer>
+        <TestSignInComponent />
       </AuthProvider>
     );
 
@@ -106,14 +103,15 @@ describe('AuthProvider', () => {
 
     let signOutFunction: () => Promise<{ error: { message: string } | null }>;
     
+    const TestSignOutComponent = () => {
+      const { signOut } = useAuth();
+      signOutFunction = signOut;
+      return null;
+    };
+    
     render(
       <AuthProvider>
-        <AuthContext.Consumer>
-          {({ signOut }) => {
-            signOutFunction = signOut;
-            return null;
-          }}
-        </AuthContext.Consumer>
+        <TestSignOutComponent />
       </AuthProvider>
     );
 
@@ -130,14 +128,15 @@ describe('AuthProvider', () => {
 
     let resetPasswordFunction: (email: string) => Promise<{ error: { message: string } | null }>;
     
+    const TestResetPasswordComponent = () => {
+      const { resetPassword } = useAuth();
+      resetPasswordFunction = resetPassword;
+      return null;
+    };
+    
     render(
       <AuthProvider>
-        <AuthContext.Consumer>
-          {({ resetPassword }) => {
-            resetPasswordFunction = resetPassword;
-            return null;
-          }}
-        </AuthContext.Consumer>
+        <TestResetPasswordComponent />
       </AuthProvider>
     );
 
@@ -162,14 +161,15 @@ describe('AuthProvider', () => {
       error: null,
     });
 
+    const TestUpdatePasswordComponent = () => {
+      const { updatePassword } = useAuth();
+      updatePasswordFunction = updatePassword;
+      return null;
+    };
+    
     render(
       <AuthProvider>
-        <AuthContext.Consumer>
-          {({ updatePassword }) => {
-            updatePasswordFunction = updatePassword;
-            return null;
-          }}
-        </AuthContext.Consumer>
+        <TestUpdatePasswordComponent />
       </AuthProvider>
     );
 
@@ -190,15 +190,16 @@ describe('AuthProvider', () => {
     let signInFunction: (email: string, password: string) => Promise<AuthResponse>;
     let errorState: string | null;
     
+    const TestErrorComponent = () => {
+      const { signIn, error } = useAuth();
+      signInFunction = signIn;
+      errorState = error;
+      return null;
+    };
+    
     render(
       <AuthProvider>
-        <AuthContext.Consumer>
-          {({ signIn, error }) => {
-            signInFunction = signIn;
-            errorState = error;
-            return null;
-          }}
-        </AuthContext.Consumer>
+        <TestErrorComponent />
       </AuthProvider>
     );
 
