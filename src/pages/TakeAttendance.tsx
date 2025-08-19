@@ -266,7 +266,7 @@ const TakeAttendanceContent: React.FC = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col space-y-4 p-4 md:p-6">
+    <div className="flex-1 flex flex-col space-y-4 p-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Take Attendance</h1>
@@ -290,11 +290,11 @@ const TakeAttendanceContent: React.FC = () => {
       <div className="flex items-center space-x-4">
         <div className="flex-1">
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-muted-foreground w-3.5 h-3.5" />
             <Input
               type="search"
               placeholder="Search sessions..."
-              className="pl-8 w-full"
+              className="pl-8 h-9 w-full text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -341,7 +341,7 @@ const TakeAttendanceContent: React.FC = () => {
 
         <TabsContent value="today" className="space-y-4">
           {todaysSessions.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {todaysSessions.map((session) => (
                 <SessionCard
                   key={session.id}
@@ -363,7 +363,7 @@ const TakeAttendanceContent: React.FC = () => {
 
         <TabsContent value="tomorrow" className="space-y-4">
           {tomorrowsSessions.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {tomorrowsSessions.map((session) => (
                 <SessionCard
                   key={session.id}
@@ -385,7 +385,7 @@ const TakeAttendanceContent: React.FC = () => {
 
         <TabsContent value="upcoming" className="space-y-4">
           {upcomingSessions.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {upcomingSessions.map((session) => (
                 <SessionCard
                   key={session.id}
@@ -407,7 +407,7 @@ const TakeAttendanceContent: React.FC = () => {
 
         <TabsContent value="past" className="space-y-4">
           {pastSessions.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {pastSessions.map((session) => (
                 <SessionCard
                   key={session.id}
