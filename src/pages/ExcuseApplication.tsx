@@ -363,7 +363,13 @@ const ExcuseApplicationContent = () => {
             Review and manage student excuse applications for absences
           </p>
         </div>
-
+        <Button 
+          className="bg-gradient-primary shadow-glow h-9"
+          onClick={() => setIsFormOpen(true)}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Application
+        </Button>
       </div>
 
       <Card>
