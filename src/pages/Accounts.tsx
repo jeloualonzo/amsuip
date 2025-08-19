@@ -1,57 +1,108 @@
 import { useState, useEffect } from "react";
+import { useToast } from "@/components/ui/use-toast";
+import { format, subDays } from "date-fns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { 
   Search, 
   User, 
+  UserPlus, 
   Edit, 
+  Trash2, 
   Shield, 
+  List, 
+  LayoutGrid,
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
   CheckCircle2,
   XCircle,
   UserCheck,
   UserX,
+  Key,
   Clock,
-  Eye,
-  EyeOff
+  Calendar,
+  UserCog,
+  Activity,
+  Lock,
+  Mail
 } from "lucide-react";
 import Layout from "@/components/Layout";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
-import { format } from "date-fns";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
+// Types
 type AccountStatus = 'active' | 'inactive' | 'pending' | 'suspended';
-type UserRole = 'admin' | 'instructor' | 'user';
+type UserRole = 'Admin' | 'Professor' | 'Staff' | 'Assistant';
 
-interface Profile {
-  id: string;
+interface Account {
+  id: number;
+  name: string;
   email: string;
-  first_name: string | null;
-  last_name: string | null;
   role: UserRole;
   status: AccountStatus;
-  created_at: string;
-  approved_at: string | null;
-  rejected_at: string | null;
+  lastLogin: string;
+  contactNo: string;
+  department?: string;
+  joinDate: string;
+  avatar?: string;
+  twoFactorEnabled: boolean;
+  lastActivity: string;
+  loginAttempts: number;
+  permissions: string[];
 }
+
+// Mock Data Generators
+const generateMockAccounts = (count: number): Account[] => {
+  const roles: UserRole[] = ['Admin', 'Professor', 'Staff', 'Assistant'];
+  const statuses: AccountStatus[] = ['active', 'inactive', 'pending', 'suspended'];
+  const departments = ['Computer Science', 'Mathematics', 'Physics', 'Engineering', 'Administration'];
+  
+  return Array.from({ length: count }, (_, i) => ({
+    id: i + 2,
+    name: `User ${i + 1}`,
+    email: `user${i + 1}@example.com`,
+    role: roles[Math.floor(Math.random() * roles.length)],
+    status: statuses[Math.floor(Math.random() * statuses.length)] as AccountStatus,
+    lastLogin: subDays(new Date(), Math.floor(Math.random() * 30)).toISOString(),
+    contactNo: `+1 (555) ${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}`,
+    department: departments[Math.floor(Math.random() * departments.length)],
+    joinDate: subDays(new Date(), Math.floor(Math.random() * 365)).toISOString(),
+    avatar: `https://i.pravatar.cc/150?u=${i + 1}`,
+    twoFactorEnabled: Math.random() > 0.5,
+    lastActivity: subDays(new Date(), Math.floor(Math.random() * 5)).toISOString(),
+    loginAttempts: Math.floor(Math.random() * 3),
+    permissions: ['view', 'edit'].slice(0, Math.floor(Math.random() * 2) + 1)
+  }));
+};
 
 // Role Badge Component
 const RoleBadge = ({ role }: { role: UserRole }) => {
   const roleStyles = {
-    admin: "bg-primary/10 text-primary",
-    instructor: "bg-secondary/10 text-secondary-foreground",
-    user: "bg-muted text-muted-foreground"
+    Admin: { bg: 'bg-blue-100', text: 'text-blue-800' },
+    Professor: { bg: 'bg-purple-100', text: 'text-purple-800' },
+    Staff: { bg: 'bg-amber-100', text: 'text-amber-800' },
+    Assistant: { bg: 'bg-green-100', text: 'text-green-800' }
   };
 
   return (
-    <Badge className={roleStyles[role]}>
-      {role.charAt(0).toUpperCase() + role.slice(1)}
+    <Badge className={`${roleStyles[role].bg} ${roleStyles[role].text} px-2 py-0.5`}>
+      {role}
     </Badge>
   );
 };
@@ -59,14 +110,14 @@ const RoleBadge = ({ role }: { role: UserRole }) => {
 // Status Badge Component
 const StatusBadge = ({ status }: { status: AccountStatus }) => {
   const statusStyles = {
-    active: { className: "bg-green-100 text-green-800", icon: <UserCheck className="w-3 h-3 mr-1" /> },
-    inactive: { className: "bg-gray-100 text-gray-600", icon: <UserX className="w-3 h-3 mr-1" /> },
-    pending: { className: "bg-yellow-100 text-yellow-800", icon: <Clock className="w-3 h-3 mr-1" /> },
-    suspended: { className: "bg-red-100 text-red-800", icon: <XCircle className="w-3 h-3 mr-1" /> }
+    active: { bg: 'bg-green-100', text: 'text-green-800', icon: <UserCheck className="w-3 h-3 mr-1" /> },
+    inactive: { bg: 'bg-gray-100', text: 'text-gray-600', icon: <UserX className="w-3 h-3 mr-1" /> },
+    pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: <Clock className="w-3 h-3 mr-1" /> },
+    suspended: { bg: 'bg-red-100', text: 'text-red-800', icon: <XCircle className="w-3 h-3 mr-1" /> }
   };
 
   return (
-    <Badge className={statusStyles[status].className}>
+    <Badge className={`${statusStyles[status].bg} ${statusStyles[status].text} px-2 py-0.5`}>
       <div className="flex items-center">
         {statusStyles[status].icon}
         <span className="capitalize">{status}</span>
@@ -75,21 +126,22 @@ const StatusBadge = ({ status }: { status: AccountStatus }) => {
   );
 };
 
+// Main Component
 const Accounts = () => {
+  const { toast } = useToast();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showInactive, setShowInactive] = useState(false);
   const { user } = useAuth();
-  
-  // My Account dialog states
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState({
-    first_name: '',
-    last_name: '',
-    email: ''
+    name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
+    email: user?.email || ''
   });
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -97,178 +149,175 @@ const Accounts = () => {
     newPassword: '',
     confirmPassword: ''
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // Load profiles
-  const loadProfiles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProfiles(data || []);
-    } catch (error) {
-      console.error('Error loading profiles:', error);
-      toast.error('Failed to load accounts');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Load current user profile
-  const loadCurrentUserProfile = async () => {
-    if (!user) return;
+  
+  // Mock data
+  const [accounts, setAccounts] = useState<Account[]>(() => generateMockAccounts(25));
+  
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(accounts.length / itemsPerPage);
+  
+  // Filter accounts based on search, role, and status
+  const filteredAccounts = accounts.filter(account => {
+    const matchesSearch = account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         account.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = selectedRole === 'all' || account.role === selectedRole;
+    const matchesStatus = selectedStatus === 'all' ? true : 
+                         (selectedStatus === 'active' ? account.status === 'active' : 
+                         account.status !== 'active');
     
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error) throw error;
-      
-      if (data) {
-        setProfileData({
-          first_name: data.first_name || '',
-          last_name: data.last_name || '',
-          email: data.email || ''
-        });
-      }
-    } catch (error) {
-      console.error('Error loading user profile:', error);
-    }
-  };
-
-  useEffect(() => {
-    loadProfiles();
-  }, []);
-
-  useEffect(() => {
-    if (showUserDialog) {
-      loadCurrentUserProfile();
-    }
-  }, [showUserDialog, user]);
-
-  // Approve user
-  const handleApprove = async (userId: string) => {
-    try {
-      const { error } = await supabase.rpc('approve_user', {
-        user_id: userId,
-        approver_id: user?.id
-      });
-
-      if (error) throw error;
-      
-      toast.success('User approved successfully');
-      loadProfiles();
-    } catch (error) {
-      console.error('Error approving user:', error);
-      toast.error('Failed to approve user');
-    }
-  };
-
-  // Reject user
-  const handleReject = async (userId: string) => {
-    try {
-      const { error } = await supabase.rpc('reject_user', {
-        user_id: userId,
-        rejector_id: user?.id
-      });
-
-      if (error) throw error;
-      
-      toast.success('User rejected successfully');
-      loadProfiles();
-    } catch (error) {
-      console.error('Error rejecting user:', error);
-      toast.error('Failed to reject user');
-    }
-  };
-
-  // Update profile
-  const handleUpdateProfile = async () => {
-    if (!user) return;
-    
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          first_name: profileData.first_name,
-          last_name: profileData.last_name
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
-      
-      toast.success('Profile updated successfully');
-      setEditingProfile(false);
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
-    }
-  };
-
-  // Change password
-  const handleChangePassword = async () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('New passwords do not match');
-      return;
-    }
-
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: passwordData.newPassword
-      });
-
-      if (error) throw error;
-      
-      toast.success('Password changed successfully');
-      setShowPasswordDialog(false);
-      setPasswordData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-    } catch (error) {
-      console.error('Error changing password:', error);
-      toast.error('Failed to change password');
-    }
-  };
-
-  // Filter profiles
-  const filteredProfiles = profiles.filter(profile => {
-    const matchesSearch = 
-      `${profile.first_name} ${profile.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      profile.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = selectedRole === 'all' || profile.role === selectedRole;
-    const matchesStatus = selectedStatus === 'all' || profile.status === selectedStatus;
-    
-    return matchesSearch && matchesRole && matchesStatus;
+    return matchesSearch && matchesRole && matchesStatus && 
+           (showInactive ? true : account.status !== 'inactive');
   });
 
-  if (isLoading) {
-    return (
-      <Layout>
-        <div className="container mx-auto p-4">
-          <div className="text-center">Loading accounts...</div>
-        </div>
-      </Layout>
-    );
-  }
+  // Pagination
+  const paginatedAccounts = filteredAccounts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedUsers(paginatedAccounts.map(account => account.id));
+    } else {
+      setSelectedUsers([]);
+    }
+  };
+
+  const handleUserSelect = (userId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedUsers([...selectedUsers, userId]);
+    } else {
+      setSelectedUsers(selectedUsers.filter(id => id !== userId));
+    }
+  };
+
+  const handleStatusToggle = (userId: number, newStatus: AccountStatus) => {
+    setAccounts(accounts.map(account => 
+      account.id === userId ? { ...account, status: newStatus } : account
+    ));
+    
+    toast({
+      title: "Status updated",
+      description: `User status has been ${newStatus}.`,
+    });
+  };
+
+  const handleBulkAction = (action: string) => {
+    // In a real app, this would make an API call
+    toast({
+      title: `${action} action`,
+      description: `Performed ${action} on ${selectedUsers.length} users.`,
+    });
+    setSelectedUsers([]);
+  };
+
+  // Render function for list view
+  const renderListView = () => (
+    <div className="border rounded-lg">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-12">
+              <Checkbox 
+                checked={selectedUsers.length === paginatedAccounts.length && paginatedAccounts.length > 0}
+                onCheckedChange={handleSelectAll}
+              />
+            </TableHead>
+            <TableHead>User</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Department</TableHead>
+            <TableHead>Last Login</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedAccounts.map((account) => (
+            <TableRow key={account.id}>
+              <TableCell>
+                <Checkbox 
+                  checked={selectedUsers.includes(account.id)}
+                  onCheckedChange={(checked) => handleUserSelect(account.id, checked as boolean)}
+                />
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={account.avatar} />
+                    <AvatarFallback>{account.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="font-medium">{account.name}</div>
+                    <div className="text-sm text-muted-foreground">{account.email}</div>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell><RoleBadge role={account.role} /></TableCell>
+              <TableCell>{account.department || 'N/A'}</TableCell>
+              <TableCell>
+                <div className="text-sm text-muted-foreground">
+                  {format(new Date(account.lastLogin), 'MMM d, yyyy')}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {format(new Date(account.lastLogin), 'h:mm a')}
+                </div>
+              </TableCell>
+              <TableCell>
+                <StatusBadge status={account.status} />
+              </TableCell>
+              <TableCell className="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>
+                      <User className="mr-2 h-4 w-4" />
+                      View Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className={account.status === 'active' ? 'text-red-600' : 'text-green-600'}
+                      onClick={() => handleStatusToggle(account.id, account.status === 'active' ? 'inactive' : 'active')}
+                    >
+                      {account.status === 'active' ? (
+                        <>
+                          <UserX className="mr-2 h-4 w-4" />
+                          Deactivate
+                        </>
+                      ) : (
+                        <>
+                          <UserCheck className="mr-2 h-4 w-4" />
+                          Activate
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
+
 
   return (
     <Layout>
       <div className="container mx-auto p-4 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Account Management</h1>
+            <h1 className="text-2xl font-bold tracking-tight">User Management</h1>
             <p className="text-muted-foreground">
-              Manage user accounts and access permissions
+              Manage user accounts and their access
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -278,285 +327,398 @@ const Accounts = () => {
               onClick={() => setShowUserDialog(true)}
             >
               <User className="h-4 w-4" />
-              My Account
+              Me
+            </Button>
+            <Button className="bg-gradient-primary shadow-glow h-9">
+              <UserPlus className="h-4 w-4" />
+              Add User
             </Button>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search accounts..."
-              className="pl-8 w-full"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search users..."
+                className="pl-8 w-full"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="Admin">Admin</SelectItem>
+                <SelectItem value="Professor">Professor</SelectItem>
+                <SelectItem value="Staff">Staff</SelectItem>
+                <SelectItem value="Assistant">Assistant</SelectItem>
+              </SelectContent>
+            </Select>
+
           </div>
-          <Select value={selectedRole} onValueChange={setSelectedRole}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="instructor">Instructor</SelectItem>
-              <SelectItem value="user">User</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="suspended">Suspended</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>User Accounts</CardTitle>
-            <CardDescription>
-              {filteredProfiles.length} {filteredProfiles.length === 1 ? 'account' : 'accounts'} found
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="border rounded-lg">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProfiles.map((profile) => (
-                    <TableRow key={profile.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">
-                            {profile.first_name && profile.last_name 
-                              ? `${profile.first_name} ${profile.last_name}`
-                              : profile.email.split('@')[0]}
-                          </div>
-                          <div className="text-sm text-muted-foreground">{profile.email}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell><RoleBadge role={profile.role} /></TableCell>
-                      <TableCell><StatusBadge status={profile.status} /></TableCell>
-                      <TableCell>
-                        <div className="text-sm text-muted-foreground">
-                          {format(new Date(profile.created_at), 'MMM d, yyyy')}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {profile.status === 'pending' && (
-                          <div className="flex gap-2 justify-end">
-                            <Button
-                              size="sm"
-                              onClick={() => handleApprove(profile.id)}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              <CheckCircle2 className="h-4 w-4 mr-1" />
-                              Approve
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleReject(profile.id)}
-                              className="text-red-600 border-red-200 hover:bg-red-50"
-                            >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Reject
-                            </Button>
-                          </div>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* My Account Dialog */}
-        <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>My Account</DialogTitle>
-              <DialogDescription>
-                View and edit your account information
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="first_name">First Name</Label>
-                <Input
-                  id="first_name"
-                  value={profileData.first_name}
-                  onChange={(e) => setProfileData({...profileData, first_name: e.target.value})}
-                  disabled={!editingProfile}
-                />
+          {selectedUsers.length > 0 && (
+            <div className="bg-blue-50 p-4 rounded-lg flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <p className="text-sm text-blue-800">
+                  {selectedUsers.length} {selectedUsers.length === 1 ? 'user' : 'users'} selected
+                </p>
+                <Button variant="outline" size="sm" onClick={() => setSelectedUsers([])}>
+                  Clear
+                </Button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="last_name">Last Name</Label>
-                <Input
-                  id="last_name"
-                  value={profileData.last_name}
-                  onChange={(e) => setProfileData({...profileData, last_name: e.target.value})}
-                  disabled={!editingProfile}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  value={profileData.email}
-                  disabled
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Role</Label>
-                <div className="text-sm text-muted-foreground">
-                  <RoleBadge role={(user as any)?.app_metadata?.role || 'user'} />
-                </div>
-              </div>
-              <div className="flex justify-between pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowPasswordDialog(true)}
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleBulkAction('activate')}
                 >
-                  Change Password
+                  Activate
                 </Button>
-                <div className="flex gap-2">
-                  {editingProfile ? (
-                    <>
-                      <Button variant="outline" onClick={() => setEditingProfile(false)}>
-                        Cancel
-                      </Button>
-                      <Button onClick={handleUpdateProfile}>
-                        Save Changes
-                      </Button>
-                    </>
-                  ) : (
-                    <Button onClick={() => setEditingProfile(true)}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                  )}
-                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleBulkAction('deactivate')}
+                >
+                  Deactivate
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                  onClick={() => handleBulkAction('delete')}
+                >
+                  Delete
+                </Button>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          )}
 
-        {/* Change Password Dialog */}
-        <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Change Password</DialogTitle>
-              <DialogDescription>
-                Enter your current password and choose a new one
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="current_password">Current Password</Label>
-                <div className="relative">
-                  <Input
-                    id="current_password"
-                    type={showPassword ? "text" : "password"}
-                    value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                    className="pr-10"
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="suspended">Suspended</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center space-x-2">
+                  <Switch 
+                    id="show-inactive" 
+                    checked={showInactive} 
+                    onCheckedChange={setShowInactive} 
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
+                  <label
+                    htmlFor="show-inactive"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
+                    Show Inactive
+                  </label>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {filteredAccounts.length} {filteredAccounts.length === 1 ? 'user' : 'users'} found
+              </p>
+            </div>
+
+            {renderListView()}
+
+            {filteredAccounts.length > 0 && (
+              <div className="flex items-center justify-between px-2">
+                <p className="text-sm text-muted-foreground">
+                  Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
+                  <span className="font-medium">
+                    {Math.min(currentPage * itemsPerPage, filteredAccounts.length)}
+                  </span>{' '}
+                  of <span className="font-medium">{filteredAccounts.length}</span> users
+                </p>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="new_password">New Password</Label>
-                <div className="relative">
-                  <Input
-                    id="new_password"
-                    type={showNewPassword ? "text" : "password"}
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                    className="pr-10"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                  >
-                    {showNewPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm_password">Confirm New Password</Label>
-                <div className="relative">
-                  <Input
-                    id="confirm_password"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                    className="pr-10"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => setShowPasswordDialog(false)}>
-                  Cancel
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* User Details Dialog */}
+      <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserCog className="h-5 w-5" />
+              <span>My Account</span>
+            </DialogTitle>
+            <DialogDescription>
+              View and manage your account details
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-6 py-4">
+            {/* Profile Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground">Profile Information</h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setEditingProfile(!editingProfile)}
+                  className="h-8 px-2 text-xs"
+                >
+                  <Edit className="h-3 w-3 mr-1" />
+                  {editingProfile ? 'Cancel' : 'Edit'}
                 </Button>
-                <Button onClick={handleChangePassword}>
-                  Change Password
-                </Button>
+              </div>
+
+              {/* Name Field */}
+              <div className="space-y-2">
+                <Label htmlFor="profile-name" className="text-sm font-medium flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  Name
+                </Label>
+                {editingProfile ? (
+                  <Input
+                    id="profile-name"
+                    value={profileData.name}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter your full name"
+                  />
+                ) : (
+                  <div className="p-2 bg-muted rounded-md text-sm">
+                    {profileData.name || 'No name set'}
+                  </div>
+                )}
+              </div>
+
+              {/* Email Field */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  Email
+                </Label>
+                <div className="p-2 bg-muted rounded-md text-sm font-mono">
+                  {user?.email || 'No email found'}
+                </div>
+              </div>
+
+              {/* Role Field */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-muted-foreground" />
+                  Role
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    Administrator
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    Full system access
+                  </span>
+                </div>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+
+            {/* Security Section */}
+            <div className="space-y-4 border-t pt-4">
+              <h3 className="text-sm font-semibold text-foreground">Security</h3>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-muted-foreground" />
+                    Password
+                  </Label>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 px-2 text-xs text-blue-600 hover:text-blue-700"
+                    onClick={() => setShowPasswordDialog(true)}
+                  >
+                    <Key className="h-3 w-3 mr-1" />
+                    Change Password
+                  </Button>
+                </div>
+                <div className="p-2 bg-muted rounded-md">
+                  <span className="font-mono text-sm">••••••••••••</span>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  Last Login
+                </Label>
+                <div className="p-2 bg-muted rounded-md text-sm">
+                  {user?.last_sign_in_at 
+                    ? format(new Date(user.last_sign_in_at), 'MMM d, yyyy h:mm a') 
+                    : 'Never logged in'
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-2 pt-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowUserDialog(false);
+                setEditingProfile(false);
+              }}
+            >
+              Close
+            </Button>
+            {editingProfile && (
+              <Button 
+                onClick={() => {
+                  toast({
+                    title: "Profile updated",
+                    description: "Your profile information has been updated successfully.",
+                  });
+                  setEditingProfile(false);
+                  setShowUserDialog(false);
+                }}
+              >
+                Save Changes
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Password Dialog */}
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5" />
+              <span>Change Password</span>
+            </DialogTitle>
+            <DialogDescription>
+              Update your account password. Make sure to use a strong, unique password.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="current-password">Current Password</Label>
+              <Input
+                id="current-password"
+                type="password"
+                value={passwordData.currentPassword}
+                onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                placeholder="Enter current password"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                placeholder="Enter new password"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm New Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={passwordData.confirmPassword}
+                onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                placeholder="Confirm new password"
+              />
+            </div>
+            
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p>Password requirements:</p>
+              <ul className="list-disc list-inside space-y-0.5 ml-2">
+                <li>At least 8 characters long</li>
+                <li>Include uppercase and lowercase letters</li>
+                <li>Include at least one number</li>
+                <li>Include at least one special character</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowPasswordDialog(false);
+                setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (passwordData.newPassword !== passwordData.confirmPassword) {
+                  toast({
+                    title: "Password mismatch",
+                    description: "New passwords do not match. Please try again.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                
+                if (passwordData.newPassword.length < 8) {
+                  toast({
+                    title: "Password too short",
+                    description: "Password must be at least 8 characters long.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                
+                toast({
+                  title: "Password updated",
+                  description: "Your password has been changed successfully.",
+                });
+                setShowPasswordDialog(false);
+                setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+              }}
+              disabled={!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+            >
+              Update Password
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
