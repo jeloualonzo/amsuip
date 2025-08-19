@@ -50,15 +50,11 @@ const navItems = [
 // Desktop Sidebar Navigation
 const DesktopNavigation = () => {
   const location = useLocation();
-  const [showLogout, setShowLogout] = useState(false);
   
   return (
     <div className="hidden md:flex md:flex-col h-full">
-      <div>
-        <div 
-          className="flex items-center gap-3 mb-8 group cursor-pointer"
-          onClick={() => setShowLogout(!showLogout)}
-        >
+      <div className="flex-1">
+        <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
             <GraduationCap className="w-6 h-6 text-primary-foreground" />
           </div>
@@ -66,31 +62,7 @@ const DesktopNavigation = () => {
             <h1 className="text-lg font-bold text-education-navy">AMSUIP</h1>
             <p className="text-sm text-muted-foreground">Admin Panel</p>
           </div>
-          <div className={`w-5 h-5 text-muted-foreground group-hover:text-foreground transition-all duration-200 ${showLogout ? 'rotate-180' : ''}`}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m6 9 6 6 6-6"/>
-            </svg>
-          </div>
         </div>
-        
-        {showLogout && (
-          <div className="absolute top-20 left-6 z-50 bg-background border border-border rounded-md shadow-lg p-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={() => {
-                // Implement logout functionality here
-                console.log('Logout clicked');
-              }}
-            >
-              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Logout
-            </Button>
-          </div>
-        )}
 
         <div className="space-y-1.5">
           {navItems.map((item) => {
@@ -121,6 +93,23 @@ const DesktopNavigation = () => {
             );
           })}
         </div>
+      </div>
+      
+      {/* Logout button at bottom */}
+      <div className="mt-auto pt-4 border-t border-border">
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-3 h-11 text-destructive hover:text-destructive hover:bg-destructive/10"
+          onClick={() => {
+            // Implement logout functionality here
+            console.log('Logout clicked');
+          }}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1" />
+          </svg>
+          Logout
+        </Button>
       </div>
     </div>
   );

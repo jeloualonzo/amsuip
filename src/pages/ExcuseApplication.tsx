@@ -85,7 +85,7 @@ const ExcuseApplicationContent = () => {
         .from('excuse_applications')
         .select(`
           *,
-          students:student_id (
+          students!student_id (
             firstname,
             surname,
             student_id,
@@ -93,7 +93,7 @@ const ExcuseApplicationContent = () => {
             year,
             section
           ),
-          sessions:session_id (
+          sessions!session_id (
             title,
             date
           )
