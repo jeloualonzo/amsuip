@@ -29,22 +29,22 @@ export function DataTableToolbar<TData>({
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-muted-foreground w-3.5 h-3.5" />
           <Input
-          placeholder={`Search ${searchKey}...`}
-          value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn(searchKey)?.setFilterValue(event.target.value)
-          }
-          className="pl-8 h-9 w-[150px] lg:w-[250px] text-sm"
-        />
-        </div>
-        {filterOptions.map((option) => (
-          <DataTableFacetedFilter
-            key={option.value}
-            column={table.getColumn(option.value)}
-            title={option.label}
-            options={option.options}
+            placeholder={`Search ${searchKey}...`}
+            value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn(searchKey)?.setFilterValue(event.target.value)
+            }
+            className="pl-8 h-9 w-[150px] lg:w-[250px] text-sm"
           />
         </div>
+        {filterOptions.map((option) => (
+          <div key={option.value} className="flex items-center space-x-2">
+            <DataTableFacetedFilter
+              column={table.getColumn(option.value)}
+              title={option.label}
+              options={option.options}
+            />
+          </div>
         ))}
         {isFiltered && (
           <Button
@@ -58,10 +58,6 @@ export function DataTableToolbar<TData>({
         )}
       </div>
       <div className="flex items-center space-x-2">
-        <Button className="h-9 text-xs">
-          <Plus className="mr-2 h-4 w-4" />
-          Add New
-        </Button>
         <DataTableViewOptions table={table} />
       </div>
     </div>
