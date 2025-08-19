@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, Clock, Users, BookOpen, Calendar, Star, Loader2, RefreshCw } from "lucide-react";
+import { CalendarIcon, Clock, Users, BookOpen, Calendar, Star, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { fetchStudents } from "@/lib/supabaseService";
 
@@ -488,27 +488,43 @@ const AttendanceForm = ({ onSuccess, onSubmit, initialData }: AttendanceFormProp
       <div className="pt-4 pb-2">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { type: "class" as AttendanceType, label: "Class Session", description: "Regular classroom attendance", bg: "bg-gradient-primary/5" },
-            { type: "event" as AttendanceType, label: "School Event", description: "Assemblies, ceremonies, programs", bg: "bg-gradient-accent/5" },
-            { type: "other" as AttendanceType, label: "Other Activity", description: "Workshops, field trips, meetings", bg: "bg-education-navy/5" }
+            { type: "class" as AttendanceType, label: "Class Session", description: "Regular classroom attendance", bg: "bg-gradient-primary/5", hoverBg: "hover:bg-gradient-primary/10" },
+            { type: "event" as AttendanceType, label: "School Event", description: "Assemblies, ceremonies, programs", bg: "bg-gradient-accent/5", hoverBg: "hover:bg-gradient-accent/10" },
+            { type: "other" as AttendanceType, label: "Other Activity", description: "Workshops, field trips, meetings", bg: "bg-education-navy/5", hoverBg: "hover:bg-education-navy/10" }
           ].map((option) => (
             <div 
               key={option.type} 
-              className={`relative rounded-lg p-0.5 ${option.bg} transition-all`}
+              className={`group relative rounded-lg p-0.5 ${option.bg} ${option.hoverBg} transition-all duration-200 hover:scale-105 hover:shadow-md`}
             >
               <div 
-                className={`p-4 rounded-lg cursor-pointer transition-all h-full ${attendanceType === option.type ? getTypeColor(option.type) : 'bg-white'}`}
+                className={`p-4 rounded-lg cursor-pointer transition-all duration-200 h-full ${
+                  attendanceType === option.type 
+                    ? getTypeColor(option.type) 
+                    : 'bg-white group-hover:bg-white/90 group-hover:shadow-sm'
+                }`}
                 onClick={() => setAttendanceType(option.type)}
               >
                 <div className="flex flex-col items-center gap-1.5">
-                  <div className={`transition-colors ${attendanceType === option.type ? 'text-white' : 'text-muted-foreground group-hover:text-primary'}`}>
+                  <div className={`transition-all duration-200 transform ${
+                    attendanceType === option.type 
+                      ? 'text-white scale-110' 
+                      : 'text-muted-foreground group-hover:text-primary group-hover:scale-110'
+                  }`}>
                     {getTypeIcon(option.type)}
                   </div>
                   <div className="text-center">
-                    <div className={`font-medium text-sm ${attendanceType === option.type ? 'text-white' : 'text-foreground'}`}>
+                    <div className={`font-medium text-sm transition-colors duration-200 ${
+                      attendanceType === option.type 
+                        ? 'text-white' 
+                        : 'text-foreground group-hover:text-primary'
+                    }`}>
                       {option.label}
                     </div>
-                    <div className={`text-xs ${attendanceType === option.type ? 'text-white/90' : 'text-muted-foreground'}`}>
+                    <div className={`text-xs transition-colors duration-200 ${
+                      attendanceType === option.type 
+                        ? 'text-white/90' 
+                        : 'text-muted-foreground group-hover:text-primary/80'
+                    }`}>
                       {option.description}
                     </div>
                   </div>
@@ -542,37 +558,7 @@ const AttendanceForm = ({ onSuccess, onSubmit, initialData }: AttendanceFormProp
 
             {/* Program */}
             <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="program">Program</Label>
-                  <button 
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent select from opening
-                      console.log('Manual refresh triggered');
-                      loadPrograms();
-                    }}
-                    className="text-muted-foreground hover:text-primary p-1 -ml-1"
-                    title="Refresh programs"
-                  >
-                    <RefreshCw className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setFormData(prev => ({
-                      ...prev,
-                      program: "All Programs",
-                      year: "",
-                      section: ""
-                    }));
-                  }}
-                  className="text-xs text-muted-foreground hover:text-primary"
-                >
-                  Select All
-                </button>
-              </div>
+              <Label htmlFor="program">Program</Label>
               <Select 
                 value={formData.program}
                 onValueChange={(value) => {
@@ -606,29 +592,13 @@ const AttendanceForm = ({ onSuccess, onSubmit, initialData }: AttendanceFormProp
                   )}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                {studentOptions.programs.length} programs available
-              </p>
+
             </div>
 
             {/* Year Level - Show for class, event, and other types */}
             {(attendanceType === "class" || attendanceType === "event" || attendanceType === "other") && (
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="year">Year Level</Label>
-                  <button 
-                    type="button"
-                    onClick={() => setFormData(prev => ({
-                      ...prev, 
-                      year: "All Year Levels",
-                      section: ""
-                    }))}
-                    className="text-xs text-muted-foreground hover:text-primary"
-                    disabled={!formData.program}
-                  >
-                    Select All
-                  </button>
-                </div>
+                <Label htmlFor="year">Year Level</Label>
                 <Select 
                   value={formData.year === 'All Years' ? 'All Year Levels' : formData.year}
                   onValueChange={(value) => setFormData({...formData, year: value === 'All Year Levels' ? 'All Years' : value, section: ""})}
