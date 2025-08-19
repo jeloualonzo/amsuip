@@ -614,7 +614,7 @@ const Students = () => {
   return (
     <Layout>
       <div className="container mx-auto p-3">
-        <div className="mb-4">
+        <div className="mb-3">
           <div className="flex flex-col">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-1">
               <div>
@@ -637,9 +637,9 @@ const Students = () => {
         <div className="bg-white rounded-lg shadow-sm p-3">
           <div className="flex flex-col sm:flex-row gap-2 mb-3">
             <div className="flex-1 relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+              <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-muted-foreground w-3.5 h-3.5" />
               {isSearching && (
-                <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-blue-500 animate-spin" />
+                <Loader2 className="absolute right-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-blue-500 animate-spin" />
               )}
               <Input
                 placeholder="Search by name or ID..."
@@ -999,7 +999,7 @@ const Students = () => {
               </button>
             </div>
 
-            <div className="mb-4">
+            <div className="mb-3">
               <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors p-6">
                 <div className="flex flex-col items-center justify-center text-center">
                   <Upload className="w-10 h-10 mb-3 text-gray-400" />
@@ -1112,13 +1112,13 @@ const Students = () => {
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
         <Card className="bg-gradient-card border-0 shadow-card">
-          <CardContent className="p-6 text-center">
+          <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-gray-900">{pagination.totalCount.toLocaleString()}</div>
             <div className="text-sm text-gray-500">Total Students</div>
           </CardContent>
         </Card>
         <Card className="bg-gradient-card border-0 shadow-card">
-          <CardContent className="p-6 text-center">
+          <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-accent">
               {students.filter(student => student.status === 'Active').length.toLocaleString()}
             </div>
@@ -1126,13 +1126,13 @@ const Students = () => {
           </CardContent>
         </Card>
         <Card className="bg-gradient-card border-0 shadow-card">
-          <CardContent className="p-6 text-center">
+          <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-primary">89.2%</div>
             <div className="text-sm text-muted-foreground">Avg Attendance</div>
           </CardContent>
         </Card>
         <Card className="bg-gradient-card border-0 shadow-card">
-          <CardContent className="p-6 text-center">
+          <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-education-green">
               {uniquePrograms.length}
             </div>
