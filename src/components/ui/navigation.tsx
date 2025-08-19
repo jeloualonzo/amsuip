@@ -74,16 +74,17 @@ const DesktopNavigation = () => {
         </div>
         
         {showLogout && (
-          <div className="absolute top-20 left-0 right-0 z-50 mx-4 bg-background border border-border rounded-md shadow-lg p-2">
+          <div className="absolute top-20 left-6 z-50 bg-background border border-border rounded-md shadow-lg p-1">
             <Button
               variant="ghost"
-              className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+              size="sm"
+              className="h-8 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => {
                 // Implement logout functionality here
                 console.log('Logout clicked');
               }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
               Logout
