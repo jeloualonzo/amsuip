@@ -54,13 +54,18 @@ const DesktopNavigation = () => {
   return (
     <div className="hidden md:flex md:flex-col h-full">
       <div>
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-3 mb-8 group cursor-pointer">
           <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
             <GraduationCap className="w-6 h-6 text-primary-foreground" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-lg font-bold text-education-navy">AMSUIP</h1>
             <p className="text-sm text-muted-foreground">Admin Panel</p>
+          </div>
+          <div className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
           </div>
         </div>
 
@@ -94,11 +99,6 @@ const DesktopNavigation = () => {
           })}
         </div>
       </div>
-      
-      {/* User profile section at the bottom */}
-      <div className="mt-auto pt-4">
-        <UserProfile />
-      </div>
     </div>
   );
 };
@@ -120,7 +120,7 @@ const MobileDrawer = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
             </div>
             <div>
               <h1 className="text-lg font-bold text-education-navy">AMSUIP</h1>
-              <p className="text-sm text-muted-foreground">Menu</p>
+              <p className="text-sm text-muted-foreground">Admin Panel</p>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>
