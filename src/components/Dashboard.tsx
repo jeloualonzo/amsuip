@@ -85,18 +85,18 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">{getDashboardTitle()}</h2>
-          <p className="text-muted-foreground">
-            {getGreeting()}, {getUserDisplayName()}! Here's what's happening with your attendance system.
+    <div className="flex-1 space-y-6 p-3 md:p-6 pt-4">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-bold tracking-tight text-education-navy">{getDashboardTitle()}</h2>
+          <p className="text-sm text-muted-foreground">
+            {getGreeting()}, {getUserDisplayName()}! Here's your attendance overview.
           </p>
         </div>
         <div className="flex items-center space-x-2">
           <Button 
             onClick={handleViewCalendar}
-            className="bg-gradient-primary shadow-glow h-9"
+            className="bg-gradient-primary shadow-glow h-9 px-4"
           >
             <Calendar className="mr-2 h-4 w-4" />
             View Calendar
@@ -104,125 +104,125 @@ const Dashboard = () => {
         </div>
       </div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="bg-gradient-card border-0 shadow-card hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-education-navy">Total Students</CardTitle>
+            <Users className="h-4 w-4 text-primary" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="pt-1">
+            <div className="text-2xl font-bold text-education-navy">
               {loading ? '...' : totalStudents.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-1">
               Enrolled students
             </p>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="bg-gradient-card border-0 shadow-card hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Sessions</CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-education-navy">Today's Sessions</CardTitle>
+            <CalendarDays className="h-4 w-4 text-accent" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="pt-1">
+            <div className="text-2xl font-bold text-education-navy">8</div>
+            <p className="text-xs text-muted-foreground mt-1">
               +2 from yesterday
             </p>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="bg-gradient-card border-0 shadow-card hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Attendance Rate</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-education-navy">Attendance Rate</CardTitle>
+            <TrendingUp className="h-4 w-4 text-education-green" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">94.2%</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="pt-1">
+            <div className="text-2xl font-bold text-education-navy">94.2%</div>
+            <p className="text-xs text-muted-foreground mt-1">
               +1.2% from last week
             </p>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="bg-gradient-card border-0 shadow-card hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Classes</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-education-navy">Active Classes</CardTitle>
+            <BookOpen className="h-4 w-4 text-orange-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="pt-1">
+            <div className="text-2xl font-bold text-education-navy">24</div>
+            <p className="text-xs text-muted-foreground mt-1">
               Across all programs
             </p>
           </CardContent>
         </Card>
       </div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4 bg-gradient-card border-0 shadow-card">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-education-navy">Recent Activity</CardTitle>
             <CardDescription>
               Latest attendance activities and updates
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
-                <div className="flex-1 space-y-1">
+            <div className="space-y-3">
+              <div className="flex items-center p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <CheckCircle2 className="mr-3 h-4 w-4 text-green-500" />
+                <div className="flex-1 space-y-0.5">
                   <p className="text-sm font-medium leading-none">
                     CS 101 - Introduction to Programming
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Attendance taken for 45 students
                   </p>
                 </div>
-                <div className="text-sm text-muted-foreground">2 min ago</div>
+                <div className="text-xs text-muted-foreground">2 min ago</div>
               </div>
               
-              <div className="flex items-center">
-                <Clock className="mr-2 h-4 w-4 text-orange-500" />
-                <div className="flex-1 space-y-1">
+              <div className="flex items-center p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <Clock className="mr-3 h-4 w-4 text-orange-500" />
+                <div className="flex-1 space-y-0.5">
                   <p className="text-sm font-medium leading-none">
                     MATH 201 - Calculus II
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Session starting in 15 minutes
                   </p>
                 </div>
-                <div className="text-sm text-muted-foreground">upcoming</div>
+                <div className="text-xs text-muted-foreground">upcoming</div>
               </div>
               
-              <div className="flex items-center">
-                <BarChart3 className="mr-2 h-4 w-4 text-blue-500" />
-                <div className="flex-1 space-y-1">
+              <div className="flex items-center p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <BarChart3 className="mr-3 h-4 w-4 text-blue-500" />
+                <div className="flex-1 space-y-0.5">
                   <p className="text-sm font-medium leading-none">
                     Weekly Report Generated
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Attendance summary for Nov 11-17
                   </p>
                 </div>
-                <div className="text-sm text-muted-foreground">1 hour ago</div>
+                <div className="text-xs text-muted-foreground">1 hour ago</div>
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+        <Card className="col-span-3 bg-gradient-card border-0 shadow-card">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-education-navy">Quick Actions</CardTitle>
             <CardDescription>
               Common tasks and shortcuts
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Button 
-                className="w-full justify-start"
+                className="w-full justify-start h-9 hover:bg-primary/10 transition-colors"
                 variant="outline"
                 onClick={() => navigate('/take-attendance')}
               >
@@ -231,7 +231,7 @@ const Dashboard = () => {
               </Button>
               
               <Button 
-                className="w-full justify-start"
+                className="w-full justify-start h-9 hover:bg-primary/10 transition-colors"
                 variant="outline"
                 onClick={() => navigate('/students')}
               >
@@ -240,7 +240,7 @@ const Dashboard = () => {
               </Button>
               
               <Button 
-                className="w-full justify-start"
+                className="w-full justify-start h-9 hover:bg-primary/10 transition-colors"
                 variant="outline"
                 onClick={() => navigate('/schedule')}
               >
@@ -249,7 +249,7 @@ const Dashboard = () => {
               </Button>
               
               <Button 
-                className="w-full justify-start"
+                className="w-full justify-start h-9 hover:bg-primary/10 transition-colors"
                 variant="outline"
                 onClick={() => navigate('/records')}
               >
