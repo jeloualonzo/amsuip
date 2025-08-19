@@ -11,7 +11,7 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
-      <main className={`flex-1 ${isDesktop ? 'md:ml-64' : ''} pt-4 md:pt-0 p-3 md:p-6`}>
+      <main className={`flex-1 ${isDesktop ? 'md:ml-64' : ''} pt-4 md:pt-0 px-4 py-3 md:px-6 md:py-4`}>
         {children}
       </main>
     </div>
